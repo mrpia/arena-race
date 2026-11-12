@@ -1,6 +1,7 @@
 # Handover: where the game stands
 
-State after commit `9ef4a00` (one or two players), 2026-11-12.
+State after step 9 (online at https://arena-race.mrpia.ch), 2026-11-12. The game itself
+hasn't changed since commit `9ef4a00` (one or two players).
 
 ## What the game is
 
@@ -92,3 +93,28 @@ npm run typecheck
 
 Records are saved per browser origin, which includes the port. If another dev server already
 holds port 5173, Vite moves to 5174 and the saved records seem to be gone.
+
+## Online
+
+https://arena-race.mrpia.ch (also https://arena-race.web.app) serves the built `dist/` from
+Firebase Hosting. `npm run ship` builds and deploys. Deploys are manual, as for math-quizz:
+nothing deploys on push.
+
+Status on 2026-11-12: deployed and checked on https://arena-race.web.app. The custom domain
+https://arena-race.mrpia.ch isn't connected yet: it needs the Firebase console step and the
+DNS records at the registrar.
+
+- Firebase project `modern-ally-102412`, shared with math-quizz. math-quizz is the project's
+  default site; this game is the second site, `arena-race`. `firebase.json` deploys to the
+  target `game`, which `.firebaserc` maps to `arena-race`. Don't drop the target.
+- The Firebase CLI (`firebase-tools`) is installed globally under nvm's Node 22. Switching
+  nvm to another Node version hides it. Its network calls need the command sandbox off, and
+  `firebase login --no-localhost` is interactive: the adult runs it in their own terminal.
+- Cache headers: `assets/**` immutable for a year, `/` and `/index.html` `no-cache`.
+  math-quizz found that `index.html` otherwise gets Hosting's default `max-age=3600`
+  (math-quizz commit `47fef35`). No rewrite to `index.html`: the game has no routes, so an
+  unknown path gets a 404.
+- DNS for the `arena-race` host is at the `mrpia.ch` registrar, with the records the Firebase
+  console showed. The certificate is Google-managed and renews by itself.
+- The online game keeps its own records: `localStorage` belongs to the origin.
+- Phones and tablets can open the page, but nobody can drive without a keyboard.

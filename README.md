@@ -69,3 +69,30 @@ The arena fills the window: a bigger window gives the players more room. Change
 
 `npm run build` type-checks and writes a static site to `dist/`, which you can open
 from any web server or zip up and share.
+
+## Putting it online
+
+The game is a static site on Firebase Hosting, at https://arena-race.mrpia.ch (also
+https://arena-race.web.app). It has its own Hosting site, `arena-race`, inside the Firebase
+project `modern-ally-102412`, which it shares with math-quizz.
+
+```bash
+npm i -g firebase-tools          # once per machine
+firebase login --no-localhost    # once per machine
+npm run ship                     # builds, then deploys dist/ to the arena-race site
+```
+
+`firebase.json` deploys to the target `game`, and `.firebaserc` maps that target to the site
+`arena-race`. Keep it that way: math-quizz lives on the project's default site, and a config
+without a target could end up there.
+
+Files in `assets/` have a content hash in their name and are cached for a year. `index.html`
+is sent with `no-cache`, so the browser asks again on every load and a new deploy shows up
+at once. Without it, Firebase Hosting lets browsers keep `index.html` for an hour, and an old
+copy can point at a bundle that's no longer there.
+
+Records are saved per browser origin, so the online game keeps its own best times, separate
+from the ones on `localhost`.
+
+The custom domain's DNS records are at the `mrpia.ch` registrar, on the `arena-race` host,
+as shown in the Firebase console under Hosting → `arena-race` → custom domains.

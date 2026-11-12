@@ -22,5 +22,9 @@ how we work and how to check a change.
   (P1 left side of the keyboard, P2 arrows/right side).
 - Both players must stay equally strong unless the kids ask for an asymmetric game.
 - Run `npm run typecheck` after changes.
+- The game is online at arena-race.mrpia.ch: `npm run ship` puts `dist/` on the Firebase Hosting
+  site `arena-race` (target `game` in `firebase.json` and `.firebaserc`). Keep the target:
+  math-quizz is the default site of the same project, `modern-ally-102412`. Deploying is
+  outward-facing, so ask first.
 - After each finished step, commit and push to the current branch, one commit per step, and
   update `docs/handover.md` and `docs/decisions.md` in the same commit.

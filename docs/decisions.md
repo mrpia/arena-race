@@ -117,3 +117,22 @@ with skid marks on the asphalt while drifting.
 
 The `team-orange` branch of `mrpia/arena-starter` was pushed as `master` of
 `mrpia/arena-race`, which is public. `arena-starter` keeps its `team-orange` branch.
+
+## 9. Online at arena-race.mrpia.ch
+
+**Asked (by the adult, not the kids):** build the game and put it online at
+https://arena-race.mrpia.ch, the same way math-quizz is at https://math-quizz.mrpia.ch.
+
+- Firebase Hosting, like math-quizz: one login and one console for both. The game is a static
+  bundle (about 12 kB gzipped), so no server is needed.
+- A second Hosting site, `arena-race`, in math-quizz's Firebase project `modern-ally-102412`,
+  rather than a project of its own. The free Hosting quota is per project, so the two share it.
+- `firebase.json` deploys to a deploy target, `game`, that `.firebaserc` maps to the site
+  `arena-race`. Firebase recommends targets for projects with several sites. Here they also
+  keep a deploy away from math-quizz, which is the project's default site.
+- Cache headers copied from math-quizz: `assets/**` immutable, `/` and `/index.html`
+  `no-cache`. math-quizz's service worker and manifest were not copied: this game isn't a PWA.
+  Neither was math-quizz's rewrite of every path to `index.html`: this game has no routes.
+- Deploys are manual with `npm run ship`, as for math-quizz. No deploy on push.
+- Not done in this step: renaming "Arena Starter" (page title, `package.json`), and a hint
+  for visitors on phones or tablets, who can open the page but can't drive.
