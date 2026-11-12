@@ -1,11 +1,11 @@
 // Everything a kid might want to tweak lives here.
 
 export interface Controls {
-  up: string; // up and down aren't used yet: the cars always drive at the same speed
-  down: string;
+  up: string; // not used yet: the cars always drive at the same speed unless you brake
+  brake: string; // hold to drive at BRAKE_SPEED
   left: string; // left and right steer the car
   right: string;
-  action: string;
+  drift: string; // hold while steering to slide through the corner (see DRIFT)
 }
 
 export interface PlayerConfig {
@@ -41,24 +41,40 @@ export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
 
 export const PLAYER_RADIUS = 24; // how close two cars get before they bump
-export const PLAYER_SPEED = 260; // world units per second. There's no gas or brake: cars always drive this fast.
+export const PLAYER_SPEED = 260; // world units per second. There's no gas pedal: cars always drive this fast.
 export const OFF_TRACK_SPEED = 0.45; // off the track (on the grass) cars are slower: 0.5 = half as fast, 1 = no slowdown
+export const BRAKE_SPEED = 0.5; // while braking, cars drive this share of their speed: half as fast = twice as tight a turn
 export const TURN_SPEED = 180; // degrees per second while steering (360 = a full circle in one second)
-export const PLAYER_GRIP = 12; // higher = the car goes where its nose points, lower = it drifts like on ice
-export const HOP_SPEED = 520;
+export const PLAYER_GRIP = 12; // higher = the car goes where its nose points, lower = it slides like on ice
+
+// Hold the drift key while steering: the tires lose grip and the nose swings round faster,
+// so the car slides sideways through the corner. Let go and it shoots off where the nose points.
+export const DRIFT = {
+  grip: 4, // grip while drifting (PLAYER_GRIP is the normal grip): lower = slides more
+  turnSpeed: 250, // degrees per second while drifting (TURN_SPEED is the normal one)
+};
+
+// Black marks the back wheels leave on the asphalt while drifting.
+export const SKID_MARKS = {
+  slide: 10, // degrees between where the nose points and where the car goes before marks appear
+  width: 3, // in world units
+  fadeTime: 8, // seconds until a mark is gone
+  max: 3000, // the oldest marks disappear early when there are more than this
+  color: 'rgba(20,20,20,0.55)',
+};
 
 // What the cars look like, in world units. Each car is painted in its player's color.
 export const CAR = {
   length: 60,
   width: 32,
+  // Where the wheels sit, measured from the middle as a share of half the car's length.
+  axles: { front: 0.55, back: 0.6 },
   colors: {
     wheels: '#1e1e1e',
     windshield: 'rgba(25,35,55,0.75)',
     stripe: 'rgba(255,255,255,0.85)', // racing stripe down the middle
   },
 };
-export const GRAVITY = 1800;
-
 export const COLORS = {
   background: '#1b1f2a',
   text: '#ffffff',
@@ -138,7 +154,7 @@ export const TRACK = {
 
 // Walls of old tires around the whole track, so nobody can take a shortcut across the grass.
 // They're placed automatically, so they follow the track when you change TRACK.points.
-// Drive into them and you bounce back. They stop hopping cars too.
+// Drive into them and you bounce back.
 export const TIRES = {
   runoff: 40, // grass between the edge of the track and the middle of the tires, in world units
   radius: 9, // size of each tire
@@ -308,13 +324,13 @@ export const PLAYERS: PlayerConfig[] = [
     emoji: '🐱',
     color: '#ff6b6b',
     lane: 0.2,
-    controls: { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', action: 'Space' },
+    controls: { up: 'KeyW', brake: 'KeyS', left: 'KeyA', right: 'KeyD', drift: 'Space' },
   },
   {
     name: 'Player 2',
     emoji: '🐶',
     color: '#4dabf7',
     lane: 0.8,
-    controls: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', action: 'Enter' },
+    controls: { up: 'ArrowUp', brake: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', drift: 'Enter' },
   },
 ];

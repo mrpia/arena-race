@@ -1,31 +1,35 @@
 import {
   ARENA,
-  GRAVITY,
-  HOP_SPEED,
+  BRAKE_SPEED,
+  CAR,
+  DRIFT,
   OFF_TRACK_SPEED,
   PLAYER_GRIP,
   PLAYER_RADIUS,
   PLAYER_SPEED,
   type PlayerConfig,
+  SKID_MARKS,
   TIRES,
   TURN_SPEED,
 } from './config';
-import { isDown, wasPressed } from './input';
+import { isDown } from './input';
+import { addSkidMark } from './skidmarks';
 import { getTrack, onTrack, startSpot } from './track';
+
+type Spot = { x: number; y: number };
 
 export class Player {
   x: number;
   y: number;
-  z = 0; // height above the floor, for hopping
   angle: number; // which way the car points, in radians: 0 = right, PI / 2 = down
   vx = 0;
   vy = 0;
-  vz = 0;
   radius = PLAYER_RADIUS;
   bouncing = 0; // seconds left sliding back after hitting the tires
   // Stretches of track driven through in order (see race.ts). Cars start just behind the
   // start/finish line, so crossing it for the first time brings this to 0: the first lap begins.
   sectorsPassed = -1;
+  private lastWheels: [Spot, Spot] | null = null; // where the back wheels were, while leaving skid marks
 
   constructor(public config: PlayerConfig) {
     const spot = startSpot(config.lane);
@@ -36,14 +40,19 @@ export class Player {
 
   update(dt: number): void {
     const c = this.config.controls;
+    const drifting = isDown(c.drift);
+    const asphalt = onTrack(this.x, this.y);
 
-    // Left and right turn the car. There's no gas or brake: it always drives at PLAYER_SPEED.
+    // Left and right turn the car; while drifting the nose swings round faster.
     const steer = (isDown(c.right) ? 1 : 0) - (isDown(c.left) ? 1 : 0);
-    this.angle += steer * ((TURN_SPEED * Math.PI) / 180) * dt;
+    const turnSpeed = drifting ? DRIFT.turnSpeed : TURN_SPEED;
+    this.angle += steer * ((turnSpeed * Math.PI) / 180) * dt;
 
-    // Off the track the car is slower. What counts is the spot under the middle of the car,
-    // even while it hops, so hopping across the grass is no shortcut.
-    const speed = onTrack(this.x, this.y) ? PLAYER_SPEED : PLAYER_SPEED * OFF_TRACK_SPEED;
+    // There's no gas pedal: the car always drives at PLAYER_SPEED, unless it's braking or on the grass.
+    // What counts for the grass is the spot under the middle of the car.
+    let speed = PLAYER_SPEED;
+    if (!asphalt) speed *= OFF_TRACK_SPEED;
+    if (isDown(c.brake)) speed *= BRAKE_SPEED;
 
     if (this.bouncing > 0) {
       // Just hit the tires: slide back and slow down, then drive again.
@@ -52,9 +61,10 @@ export class Player {
       this.vx *= slowDown;
       this.vy *= slowDown;
     } else {
-      // Ease velocity toward "full speed where the nose points" instead of snapping to it,
-      // so the car speeds up at the start and drifts a little in tight turns.
-      const blend = Math.min(1, PLAYER_GRIP * dt);
+      // Ease velocity toward "full speed where the nose points" instead of snapping to it.
+      // With less grip (drifting) it takes longer, so the car slides sideways.
+      const grip = drifting ? DRIFT.grip : PLAYER_GRIP;
+      const blend = Math.min(1, grip * dt);
       this.vx += (Math.cos(this.angle) * speed - this.vx) * blend;
       this.vy += (Math.sin(this.angle) * speed - this.vy) * blend;
     }
@@ -62,20 +72,37 @@ export class Player {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.bounceOffTires();
-
-    // Action button: a hop for now. Swap this for a turbo, a horn, etc.
-    if (wasPressed(c.action) && this.z === 0) {
-      this.vz = HOP_SPEED;
-    }
-    this.vz -= GRAVITY * dt;
-    this.z = Math.max(0, this.z + this.vz * dt);
-    if (this.z === 0) this.vz = 0;
-
     this.stayInArena();
+    this.leaveSkidMarks(drifting && asphalt);
   }
 
-  // Drive into a tire and you get pushed back out and bounce off it. This works while hopping too,
-  // or you could hop over a wall to another part of the track.
+  // How far the car is sliding sideways: the angle between where the nose points and where it goes, in degrees.
+  slideAngle(): number {
+    if (Math.hypot(this.vx, this.vy) < 40) return 0; // too slow to skid
+    const diff = Math.atan2(this.vy, this.vx) - this.angle;
+    return Math.abs((Math.atan2(Math.sin(diff), Math.cos(diff)) * 180) / Math.PI);
+  }
+
+  // The back wheels draw black lines on the asphalt while the car slides.
+  private leaveSkidMarks(canSkid: boolean): void {
+    if (!canSkid || this.slideAngle() < SKID_MARKS.slide) {
+      this.lastWheels = null;
+      return;
+    }
+    const back = (-CAR.length / 2) * CAR.axles.back;
+    const side = CAR.width / 2;
+    const cos = Math.cos(this.angle);
+    const sin = Math.sin(this.angle);
+    const wheel = (s: number): Spot => ({ x: this.x + cos * back - sin * s, y: this.y + sin * back + cos * s });
+    const wheels: [Spot, Spot] = [wheel(-side), wheel(side)];
+    if (this.lastWheels) {
+      addSkidMark(this.lastWheels[0], wheels[0]);
+      addSkidMark(this.lastWheels[1], wheels[1]);
+    }
+    this.lastWheels = wheels;
+  }
+
+  // Drive into a tire and you get pushed back out and bounce off it.
   bounceOffTires(): void {
     const closest = this.radius + TIRES.radius;
     for (const t of getTrack().tires) {
@@ -105,7 +132,6 @@ export class Player {
 
 // Push two overlapping players apart so they can bump but not overlap.
 export function separate(a: Player, b: Player): void {
-  if (a.z > a.radius || b.z > b.radius) return; // one is jumping over the other
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const dist = Math.hypot(dx, dy) || 0.0001;

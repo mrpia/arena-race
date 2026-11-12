@@ -5,14 +5,17 @@ import { fitToScreen, setCamera } from './camera';
 import { setFloor } from './floors';
 import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
 import { render } from './render';
+import { clearSkidMarks, updateSkidMarks } from './skidmarks';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
 const ctx = canvas.getContext('2d')!;
 
 let players: Player[] = [];
 
+// A fresh start: cars at the start line, last race's skid marks gone.
 function placeCarsAtStart(): void {
   players = PLAYERS.map((cfg) => new Player(cfg));
+  clearSkidMarks();
 }
 
 // Fill the whole window, sharp on HiDPI screens. The arena grows or shrinks to match.
@@ -43,7 +46,7 @@ function showCamera(): void {
 cameraButton.addEventListener('click', () => {
   cameraName = cameraName === '3d' ? '2d' : '3d';
   showCamera();
-  // Let go of focus, or Space (a player's action key) would click it again.
+  // Let go of focus, or Space (a player's drift key) would click it again.
   cameraButton.blur();
 });
 showCamera();
@@ -61,7 +64,7 @@ const floorChoices = (Object.keys(FLOORS) as FloorName[]).map((name) => {
   choice.addEventListener('click', () => {
     chooseFloor(name);
     floorPicker.hidden = true;
-    // Let go of focus, or Space (a player's action key) would click it again.
+    // Let go of focus, or Space (a player's drift key) would click it again.
     choice.blur();
   });
   floorPicker.append(choice);
@@ -96,7 +99,7 @@ startButton.addEventListener('click', () => {
   placeCarsAtStart();
   startCountdown();
   startButton.hidden = true;
-  // Let go of focus, or Space (a player's action key) would click it again.
+  // Let go of focus, or Space (a player's drift key) would click it again.
   startButton.blur();
 });
 
@@ -108,7 +111,8 @@ let showKeys = false;
 function update(dt: number): void {
   if (wasPressed(DEBUG_KEY)) showKeys = !showKeys;
   updateRace(dt);
-  // Before "LOS!" and after someone has won, the cars can't drive, steer or hop.
+  updateSkidMarks(dt);
+  // Before "LOS!" and after someone has won, the cars can't drive, steer, brake or drift.
   if (carsCanDrive()) {
     for (const p of players) p.update(dt);
     for (let i = 0; i < players.length; i++) {

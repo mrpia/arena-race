@@ -1,8 +1,9 @@
-import { CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, RACE, VIEW } from './config';
+import { ARENA, CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, RACE, SKID_MARKS, VIEW } from './config';
 import { project, toPixels } from './camera';
 import { drawFloor } from './floors';
 import type { Player } from './player';
 import { countdownSign, lapsDone, raceWinners } from './race';
+import { skidMarks } from './skidmarks';
 
 // A point on the car: `forward` toward its nose, `side` toward its right, in world units from its middle.
 type CarPoint = [forward: number, side: number];
@@ -19,12 +20,12 @@ function box(forward: number, side: number, length: number, width: number): CarP
   ];
 }
 
-// Add a shape that turns with the car to the current path, lifted `z` above the floor.
-function carPath(ctx: CanvasRenderingContext2D, p: Player, points: CarPoint[], z: number): void {
+// Add a shape that turns with the car to the current path.
+function carPath(ctx: CanvasRenderingContext2D, p: Player, points: CarPoint[]): void {
   const cos = Math.cos(p.angle);
   const sin = Math.sin(p.angle);
   points.forEach(([f, s], i) => {
-    const q = project(p.x + cos * f - sin * s, p.y + sin * f + cos * s, z);
+    const q = project(p.x + cos * f - sin * s, p.y + sin * f + cos * s);
     if (i === 0) ctx.moveTo(q.sx, q.sy);
     else ctx.lineTo(q.sx, q.sy);
   });
@@ -45,45 +46,38 @@ function drawCar(ctx: CanvasRenderingContext2D, p: Player): void {
     [-L, W],
   ];
 
-  // Shadow on the floor. It shrinks as the car hops higher.
-  const shadow = Math.max(0.4, 1 - p.z / 300);
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  carPath(ctx, p, body.map(([f, s]) => [f * shadow, s * shadow]), 0);
-  ctx.fill();
-
   // Four wheels, poking out a little at the sides.
   ctx.fillStyle = CAR.colors.wheels;
   ctx.beginPath();
-  for (const f of [-L * 0.6, L * 0.55]) {
-    for (const s of [-W, W]) carPath(ctx, p, box(f, s, 14, 8), p.z);
+  for (const f of [-L * CAR.axles.back, L * CAR.axles.front]) {
+    for (const s of [-W, W]) carPath(ctx, p, box(f, s, 14, 8));
   }
   ctx.fill();
 
   ctx.fillStyle = p.config.color;
   ctx.beginPath();
-  carPath(ctx, p, body, p.z);
+  carPath(ctx, p, body);
   ctx.fill();
 
   ctx.fillStyle = CAR.colors.stripe;
   ctx.beginPath();
-  carPath(ctx, p, box(0, 0, CAR.length - 4, 6), p.z);
+  carPath(ctx, p, box(0, 0, CAR.length - 4, 6));
   ctx.fill();
 
   ctx.fillStyle = CAR.colors.windshield;
   ctx.beginPath();
-  carPath(ctx, p, box(L * 0.4, 0, 8, CAR.width - 8), p.z);
+  carPath(ctx, p, box(L * 0.4, 0, 8, CAR.width - 8));
   ctx.fill();
 
   // The driver sits a bit behind the middle, behind the windshield.
   const seatX = p.x - Math.cos(p.angle) * L * 0.2;
   const seatY = p.y - Math.sin(p.angle) * L * 0.2;
-  const seat = project(seatX, seatY, p.z);
+  const seat = project(seatX, seatY);
   const size = toPixels(CAR.width * 0.85, seatY);
   ctx.font = `${Math.round(size)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#000'; // opaque, or the emoji inherits the shadow's transparency
+  ctx.fillStyle = '#000'; // opaque, or the emoji inherits the windshield's transparency
   ctx.fillText(p.config.emoji, seat.sx, seat.sy);
 }
 
@@ -91,10 +85,10 @@ function keyLabel(code: string): string {
   return code.replace(/^Key/, '').replace(/^Arrow/, '');
 }
 
-function controlsText(c: Controls): { move: string; action: string } {
+function controlsText(c: Controls): { steer: string; buttons: string } {
   return {
-    move: `steer: ${[c.left, c.right].map(keyLabel).join(' ')}`,
-    action: `action: ${keyLabel(c.action)}`,
+    steer: `steer: ${[c.left, c.right].map(keyLabel).join(' ')}`,
+    buttons: `brake: ${keyLabel(c.brake)}   drift: ${keyLabel(c.drift)}`,
   };
 }
 
@@ -108,11 +102,11 @@ function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: str
   ctx.textBaseline = 'top';
 
   // In narrow windows the two players' control lines would collide in the middle,
-  // so split each into a "move" line and an "action" line.
+  // so split each into a "steer" line and a "brake, drift" line.
   ctx.font = '14px system-ui, sans-serif';
   const oneLine = PLAYERS.map((cfg) => {
     const t = controlsText(cfg.controls);
-    return `${t.move}   ${t.action}`;
+    return `${t.steer}   ${t.buttons}`;
   });
   const widths = oneLine.map((line) => ctx.measureText(line).width);
   const split = widths[0] + widths[1] + 2 * 24 + 24 > VIEW.width;
@@ -133,8 +127,8 @@ function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: str
     ctx.fillStyle = COLORS.text;
     if (split) {
       const t = controlsText(cfg.controls);
-      ctx.fillText(t.move, x, 50);
-      ctx.fillText(t.action, x, 68);
+      ctx.fillText(t.steer, x, 50);
+      ctx.fillText(t.buttons, x, 68);
     } else {
       ctx.fillText(oneLine[i], x, 50);
     }
@@ -192,10 +186,35 @@ function drawWinner(ctx: CanvasRenderingContext2D, winners: Player[]): void {
   ctx.restore();
 }
 
+// Skid marks on the floor. Older ones are fainter; they're drawn in a few batches, one per shade.
+function drawSkidMarks(ctx: CanvasRenderingContext2D): void {
+  const marks = skidMarks();
+  if (marks.length === 0) return;
+  const shades = 4;
+  ctx.save();
+  ctx.strokeStyle = SKID_MARKS.color;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = toPixels(SKID_MARKS.width, ARENA.height / 2);
+  for (let shade = 0; shade < shades; shade++) {
+    ctx.globalAlpha = 1 - shade / shades;
+    ctx.beginPath();
+    for (const m of marks) {
+      if (Math.min(shades - 1, Math.floor((m.age / SKID_MARKS.fadeTime) * shades)) !== shade) continue;
+      const a = project(m.x1, m.y1);
+      const b = project(m.x2, m.y2);
+      ctx.moveTo(a.sx, a.sy);
+      ctx.lineTo(b.sx, b.sy);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function render(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
   ctx.fillStyle = COLORS.background;
   ctx.fillRect(0, 0, VIEW.width, VIEW.height);
   drawFloor(ctx);
+  drawSkidMarks(ctx);
   // Draw far players first so near ones overlap them.
   [...players].sort((a, b) => a.y - b.y).forEach((p) => drawCar(ctx, p));
   drawHud(ctx, players, showKeys);
