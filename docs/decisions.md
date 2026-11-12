@@ -118,6 +118,10 @@ with skid marks on the asphalt while drifting.
 The `team-orange` branch of `mrpia/arena-starter` was pushed as `master` of
 `mrpia/arena-race`, which is public. `arena-starter` keeps its `team-orange` branch.
 
+Later the same day `team-orange` was deleted from `arena-starter`, which now has only
+`master`. Nothing was lost: every commit of the race game, including the ones named in this
+log, is on `master` here.
+
 ## 9. Online at arena-race.mrpia.ch
 
 **Asked (by the adult, not the kids):** build the game and put it online at
