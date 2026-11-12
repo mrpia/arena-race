@@ -165,3 +165,13 @@ game but can't drive.
 - The start buttons still work on phones: someone with a Bluetooth keyboard can play.
 - Not chosen yet: touch controls that would let one player drive on a phone. That's a game
   feature, for the kids to decide.
+
+## 12. Idea files left to arena-starter
+
+**Asked (by the adult):** remove `IDEAS.md` and `IDEEN.md` here, keep them in arena-starter.
+
+- They described the original arena starter, hopping included, which step 6 removed, so they
+  misled more than they helped. They were unchanged since the first commit and are identical
+  to the copies on arena-starter's `master`.
+- The README now points to `docs/BACKLOG.md` for ideas for this game, and to arena-starter's
+  copies for general ones.

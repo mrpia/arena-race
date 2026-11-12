@@ -50,7 +50,10 @@ keys are held. Use it to check that your keyboard registers both players at once
 (up to six keys: steer, brake and drift for each): many laptop keyboards drop keys when
 several are held.
 
-Out of ideas? See [IDEAS.md](IDEAS.md) for themes, twists and example prompts ([IDEEN.md](IDEEN.md) in German).
+Out of ideas? Ideas for this game are in [docs/BACKLOG.md](docs/BACKLOG.md). Themes, twists and
+example prompts for two-player games in general are in arena-starter's
+[IDEAS.md](https://github.com/mrpia/arena-starter/blob/master/IDEAS.md)
+([IDEEN.md](https://github.com/mrpia/arena-starter/blob/master/IDEEN.md) in German).
 
 ## Where things are
 

@@ -1,8 +1,8 @@
 # Handover: where the game stands
 
-State after step 11 (a keyboard hint on phones and tablets), 2026-11-12. Online since step 9,
-called "Arena Race" since step 10. Driving and racing haven't changed since commit `9ef4a00`
-(one or two players).
+State after step 12 (idea files left to arena-starter), 2026-11-12. Online since step 9,
+called "Arena Race" since step 10, keyboard hint on phones since step 11. Driving and racing
+haven't changed since commit `9ef4a00` (one or two players).
 
 ## What the game is
 
@@ -77,7 +77,6 @@ Known loose ends. Ideas for new features are in [BACKLOG.md](BACKLOG.md).
 - The game is called "Arena Race" for now, to match the repo and the domain. The kids may
   still pick a name of their own. Whatever it becomes, keep the `localStorage` key prefix
   `arena-starter.record` in `records.ts`, or the saved best times are lost.
-- `IDEAS.md` and `IDEEN.md` still describe the original arena starter (hopping and so on).
 - The cat starts on the inside of turn 1 (a left-hander), a small advantage. The suggestion
   was to swap seats between races.
 - Resizing the window during a race moves the track under the cars; they're only put back on
