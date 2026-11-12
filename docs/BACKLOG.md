@@ -1,7 +1,7 @@
 # Backlog
 
-Ideas not built yet, oldest first. Each one has a short slug, so notes, commits and new
-sessions can name it ("backlog: i18n"). When an idea gets built, it becomes a step in
+Ideas and known issues not dealt with yet. Each one has a short slug, so notes, commits and
+new sessions can name it ("backlog: i18n"). When one gets done, it becomes a step in
 [decisions.md](decisions.md) and its entry here is deleted.
 
 ## turbo
@@ -45,3 +45,24 @@ which added the keyboard hint instead.
 
 - One-player mode fits a phone; two players on one phone screen would be cramped.
 - In two-player mode, touch against keyboard wouldn't be equally strong (see `CLAUDE.md`).
+
+## game-name
+
+"Arena Race" for now, to match the repo and the domain (step 10). The kids may still pick a
+name of their own. Whatever it becomes, keep the `localStorage` prefix `arena-starter.record`
+in `records.ts`, or the saved best times are lost.
+
+## fair-start
+
+Known issue: in two-player mode the cat starts on the inside of turn 1 (a left-hander), a
+small advantage. The suggestion was to swap start places between races.
+
+## resize-mid-race
+
+Known issue: resizing the window during a race moves the track under the cars. They're only
+put back on the start line before the start.
+
+## hud-on-phones
+
+Known issue: on a 390 px wide phone the two player names in the HUD overlap. It only matters
+once `touch-controls` lets someone play on a phone.

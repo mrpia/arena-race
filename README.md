@@ -104,5 +104,6 @@ copy can point at a bundle that's no longer there.
 Records are saved per browser origin, so the online game keeps its own best times, separate
 from the ones on `localhost`.
 
-The custom domain's DNS records are at the `mrpia.ch` registrar, on the `arena-race` host,
-as shown in the Firebase console under Hosting → `arena-race` → custom domains.
+DNS for `mrpia.ch` is at Infomaniak: `arena-race` is a CNAME to `arena-race.web.app`, as the
+Firebase console asked (Hosting → `arena-race` → custom domains). The certificate is
+managed by Google and renews by itself.

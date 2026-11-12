@@ -1,7 +1,8 @@
 # Decision log
 
 What the kids asked for, what was chosen and why, oldest first. Everything here happened on
-2026-11-12 on the `team-orange` branch of `mrpia/arena-starter`, which then became this repo.
+2026-11-12. Steps 1 to 7 were built on the `team-orange` branch of `mrpia/arena-starter`,
+which then became this repo (step 8).
 
 ## 1. A top-down car race (commit `12c864a`, together with step 2)
 
@@ -65,7 +66,7 @@ grass. The reason the kids gave: fairness.
 - The grass strip was raised from 28 to 40 units during the build, without being asked. With
   28, a car (radius 24) touched the tires (radius 9) before its middle was on the grass, which
   would have cancelled "grass slows".
-- Checked with a leak test (see working-agreements.md): no way past the walls at window sizes
+- Checked with a leak test (see dev-notes.md): no way past the walls at window sizes
   1024×600, 1280×800, 1366×768 and 1920×1080.
 
 ## 5. Three laps and a lap counter (commit `8c3bda8`)
@@ -175,3 +176,18 @@ game but can't drive.
   to the copies on arena-starter's `master`.
 - The README now points to `docs/BACKLOG.md` for ideas for this game, and to arena-starter's
   copies for general ones.
+
+## 13. Fewer docs files
+
+**Asked (by the adult):** fewer files in `docs/`; a committed handover file seemed unneeded.
+
+- `handover.md` repeated the README, this log and git, and its "state after step N" line had
+  to be edited every step. Dropped. What only it had moved: the measured numbers and the
+  Firebase CLI notes to `dev-notes.md`, the known issues to `BACKLOG.md` (`fair-start`,
+  `resize-mid-race`, `hud-on-phones`, `game-name`), the DNS setup to the README.
+- The rules for working with the kids, git and checking a change moved from
+  `working-agreements.md` into `CLAUDE.md`, which every session loads by itself. Before, a
+  session only saw them by following a chain of links. The rest of that file (test recipes,
+  traps) is now `dev-notes.md`.
+- `docs/README.md` only listed the other files; `CLAUDE.md` does that now. Dropped.
+- Left in `docs/`: this log, `BACKLOG.md` and `dev-notes.md`.
