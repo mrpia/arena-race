@@ -2,48 +2,54 @@ import {
   ARENA,
   GRAVITY,
   HOP_SPEED,
+  OFF_TRACK_SPEED,
   PLAYER_GRIP,
   PLAYER_RADIUS,
   PLAYER_SPEED,
   type PlayerConfig,
+  TURN_SPEED,
 } from './config';
 import { isDown, wasPressed } from './input';
+import { onTrack, startSpot } from './track';
 
 export class Player {
   x: number;
   y: number;
   z = 0; // height above the floor, for hopping
+  angle: number; // which way the car points, in radians: 0 = right, PI / 2 = down
   vx = 0;
   vy = 0;
   vz = 0;
   radius = PLAYER_RADIUS;
 
   constructor(public config: PlayerConfig) {
-    this.x = config.start.x * ARENA.width;
-    this.y = config.start.y * ARENA.height;
+    const spot = startSpot(config.lane);
+    this.x = spot.x;
+    this.y = spot.y;
+    this.angle = spot.angle;
   }
 
   update(dt: number): void {
     const c = this.config.controls;
-    let ix = (isDown(c.right) ? 1 : 0) - (isDown(c.left) ? 1 : 0);
-    let iy = (isDown(c.down) ? 1 : 0) - (isDown(c.up) ? 1 : 0);
 
-    // Diagonals shouldn't be faster than straight lines.
-    const len = Math.hypot(ix, iy);
-    if (len > 0) {
-      ix /= len;
-      iy /= len;
-    }
+    // Left and right turn the car. There's no gas or brake: it always drives at PLAYER_SPEED.
+    const steer = (isDown(c.right) ? 1 : 0) - (isDown(c.left) ? 1 : 0);
+    this.angle += steer * ((TURN_SPEED * Math.PI) / 180) * dt;
 
-    // Ease velocity toward the target instead of snapping to it.
+    // Off the track the car is slower. What counts is the spot under the middle of the car,
+    // even while it hops, so hopping across the grass is no shortcut.
+    const speed = onTrack(this.x, this.y) ? PLAYER_SPEED : PLAYER_SPEED * OFF_TRACK_SPEED;
+
+    // Ease velocity toward "full speed where the nose points" instead of snapping to it,
+    // so the car speeds up at the start and drifts a little in tight turns.
     const blend = Math.min(1, PLAYER_GRIP * dt);
-    this.vx += (ix * PLAYER_SPEED - this.vx) * blend;
-    this.vy += (iy * PLAYER_SPEED - this.vy) * blend;
+    this.vx += (Math.cos(this.angle) * speed - this.vx) * blend;
+    this.vy += (Math.sin(this.angle) * speed - this.vy) * blend;
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    // Action button: a hop for now. Swap this for shooting, dashing, etc.
+    // Action button: a hop for now. Swap this for a turbo, a horn, etc.
     if (wasPressed(c.action) && this.z === 0) {
       this.vz = HOP_SPEED;
     }

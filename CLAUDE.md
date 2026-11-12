@@ -13,6 +13,8 @@ A two-player same-keyboard browser game built in short sessions with a
   button). Don't hard-code a tilted look; take view-specific values from `currentCamera()`.
 - Each floor has its own painter file in `src/floors/`, listed in `FLOORS` (`config.ts`) and
   `FLOOR_LOOKS` (`floors/index.ts`). Shapes shared by floors live in `floors/shapes.ts`.
+- The race track lies on top of every floor: `TRACK` in `config.ts`, turned into a loop in world
+  units by `track.ts` and painted by `floors/track.ts` (not a floor, so not in `FLOORS`).
 - Keys are `KeyboardEvent.code` values. Keep the two players' controls apart
   (P1 left side of the keyboard, P2 arrows/right side).
 - Both players must stay equally strong unless the kids ask for an asymmetric game.

@@ -1,33 +1,89 @@
-import { COLORS, type Controls, PLAYERS, VIEW } from './config';
-import { currentCamera, project, toPixels } from './camera';
+import { CAR, COLORS, type Controls, PLAYERS, VIEW } from './config';
+import { project, toPixels } from './camera';
 import { drawFloor } from './floors';
 import type { Player } from './player';
 
-function drawPlayer(ctx: CanvasRenderingContext2D, p: Player): void {
-  const ground = project(p.x, p.y);
-  const body = project(p.x, p.y, p.z);
-  const r = toPixels(p.radius, p.y);
-  const rings = currentCamera().rings; // flat ovals in 3D, circles in 2D
+// A point on the car: `forward` toward its nose, `side` toward its right, in world units from its middle.
+type CarPoint = [forward: number, side: number];
 
-  // Shadow shrinks as the player hops higher.
+// The corners of a rectangle on the car, centered at (forward, side).
+function box(forward: number, side: number, length: number, width: number): CarPoint[] {
+  const f = length / 2;
+  const s = width / 2;
+  return [
+    [forward + f, side - s],
+    [forward + f, side + s],
+    [forward - f, side + s],
+    [forward - f, side - s],
+  ];
+}
+
+// Add a shape that turns with the car to the current path, lifted `z` above the floor.
+function carPath(ctx: CanvasRenderingContext2D, p: Player, points: CarPoint[], z: number): void {
+  const cos = Math.cos(p.angle);
+  const sin = Math.sin(p.angle);
+  points.forEach(([f, s], i) => {
+    const q = project(p.x + cos * f - sin * s, p.y + sin * f + cos * s, z);
+    if (i === 0) ctx.moveTo(q.sx, q.sy);
+    else ctx.lineTo(q.sx, q.sy);
+  });
+  ctx.closePath();
+}
+
+// A race car seen from above, in the player's color, with the player's emoji as the driver.
+function drawCar(ctx: CanvasRenderingContext2D, p: Player): void {
+  const L = CAR.length / 2;
+  const W = CAR.width / 2;
+  // Square at the back, pointy at the front, so you can see which way the car is going.
+  const body: CarPoint[] = [
+    [-L, -W],
+    [L - 10, -W],
+    [L, -W * 0.5],
+    [L, W * 0.5],
+    [L - 10, W],
+    [-L, W],
+  ];
+
+  // Shadow on the floor. It shrinks as the car hops higher.
   const shadow = Math.max(0.4, 1 - p.z / 300);
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(ground.sx, ground.sy, r * shadow, r * rings * shadow, 0, 0, Math.PI * 2);
+  carPath(ctx, p, body.map(([f, s]) => [f * shadow, s * shadow]), 0);
   ctx.fill();
 
-  // Colored ring so you can tell players apart even with similar emojis.
-  ctx.strokeStyle = p.config.color;
-  ctx.lineWidth = 3;
+  // Four wheels, poking out a little at the sides.
+  ctx.fillStyle = CAR.colors.wheels;
   ctx.beginPath();
-  ctx.ellipse(ground.sx, ground.sy, r, r * rings, 0, 0, Math.PI * 2);
-  ctx.stroke();
+  for (const f of [-L * 0.6, L * 0.55]) {
+    for (const s of [-W, W]) carPath(ctx, p, box(f, s, 14, 8), p.z);
+  }
+  ctx.fill();
 
-  ctx.font = `${Math.round(r * 2)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  ctx.fillStyle = p.config.color;
+  ctx.beginPath();
+  carPath(ctx, p, body, p.z);
+  ctx.fill();
+
+  ctx.fillStyle = CAR.colors.stripe;
+  ctx.beginPath();
+  carPath(ctx, p, box(0, 0, CAR.length - 4, 6), p.z);
+  ctx.fill();
+
+  ctx.fillStyle = CAR.colors.windshield;
+  ctx.beginPath();
+  carPath(ctx, p, box(L * 0.4, 0, 8, CAR.width - 8), p.z);
+  ctx.fill();
+
+  // The driver sits a bit behind the middle, behind the windshield.
+  const seatX = p.x - Math.cos(p.angle) * L * 0.2;
+  const seatY = p.y - Math.sin(p.angle) * L * 0.2;
+  const seat = project(seatX, seatY, p.z);
+  const size = toPixels(CAR.width * 0.85, seatY);
+  ctx.font = `${Math.round(size)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
+  ctx.textBaseline = 'middle';
   ctx.fillStyle = '#000'; // opaque, or the emoji inherits the shadow's transparency
-  ctx.fillText(p.config.emoji, body.sx, body.sy + r * 0.3);
+  ctx.fillText(p.config.emoji, seat.sx, seat.sy);
 }
 
 function keyLabel(code: string): string {
@@ -36,7 +92,7 @@ function keyLabel(code: string): string {
 
 function controlsText(c: Controls): { move: string; action: string } {
   return {
-    move: `move: ${[c.up, c.left, c.down, c.right].map(keyLabel).join(' ')}`,
+    move: `steer: ${[c.left, c.right].map(keyLabel).join(' ')}`,
     action: `action: ${keyLabel(c.action)}`,
   };
 }
@@ -85,6 +141,6 @@ export function render(ctx: CanvasRenderingContext2D, players: Player[], showKey
   ctx.fillRect(0, 0, VIEW.width, VIEW.height);
   drawFloor(ctx);
   // Draw far players first so near ones overlap them.
-  [...players].sort((a, b) => a.y - b.y).forEach((p) => drawPlayer(ctx, p));
+  [...players].sort((a, b) => a.y - b.y).forEach((p) => drawCar(ctx, p));
   drawHud(ctx, showKeys);
 }

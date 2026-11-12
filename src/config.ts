@@ -1,18 +1,20 @@
 // Everything a kid might want to tweak lives here.
 
 export interface Controls {
-  up: string;
+  up: string; // up and down aren't used yet: the cars always drive at the same speed
   down: string;
-  left: string;
+  left: string; // left and right steer the car
   right: string;
   action: string;
 }
 
 export interface PlayerConfig {
   name: string;
-  emoji: string;
-  color: string;
-  start: { x: number; y: number }; // fraction of the arena: 0 = left/far edge, 1 = right/near edge
+  emoji: string; // the driver sitting in the car
+  color: string; // the car's paint
+  // Where across the start line the car starts: 0 = the track's left edge, 1 = its right edge
+  // (as seen from the driver's seat). Cars start just behind the line, pointing along the track.
+  lane: number;
   controls: Controls;
 }
 
@@ -30,19 +32,31 @@ export const PIXELS_PER_UNIT = 1.2;
 // The two camera views. The 2D/3D button on the left switches between them while playing.
 // perspective: 0 = straight top-down. 0.3 = far edge is 30% narrower, like a tilted camera.
 // depthSquash: how much the floor is squashed vertically (1 = not at all).
-// rings: height of the ring and shadow under each player, compared to their width (1 = round).
 // wall: height in pixels of the wall along the front edge of the floor (0 = no wall).
 export const CAMERAS = {
-  '2d': { name: '2D', perspective: 0, depthSquash: 1, rings: 1, wall: 0 },
-  '3d': { name: '3D', perspective: 0.3, depthSquash: 0.8, rings: 0.4, wall: 24 },
+  '2d': { name: '2D', perspective: 0, depthSquash: 1, wall: 0 },
+  '3d': { name: '3D', perspective: 0.3, depthSquash: 0.8, wall: 24 },
 };
 export type CameraName = keyof typeof CAMERAS;
-export const CAMERA: CameraName = '3d'; // the view the game starts in
+export const CAMERA: CameraName = '2d'; // the view the game starts in
 
-export const PLAYER_RADIUS = 28;
-export const PLAYER_SPEED = 320; // world units per second
-export const PLAYER_GRIP = 12; // higher = snappier start/stop, lower = icy
+export const PLAYER_RADIUS = 24; // how close two cars get before they bump
+export const PLAYER_SPEED = 260; // world units per second. There's no gas or brake: cars always drive this fast.
+export const OFF_TRACK_SPEED = 0.45; // off the track (on the grass) cars are slower: 0.5 = half as fast, 1 = no slowdown
+export const TURN_SPEED = 180; // degrees per second while steering (360 = a full circle in one second)
+export const PLAYER_GRIP = 12; // higher = the car goes where its nose points, lower = it drifts like on ice
 export const HOP_SPEED = 520;
+
+// What the cars look like, in world units. Each car is painted in its player's color.
+export const CAR = {
+  length: 60,
+  width: 32,
+  colors: {
+    wheels: '#1e1e1e',
+    windshield: 'rgba(25,35,55,0.75)',
+    stripe: 'rgba(255,255,255,0.85)', // racing stripe down the middle
+  },
+};
 export const GRAVITY = 1800;
 
 export const COLORS = {
@@ -50,9 +64,58 @@ export const COLORS = {
   text: '#ffffff',
 };
 
+// The race track. It lies on top of whichever floor is picked, and off the track the cars are slower.
+export const TRACK = {
+  // The middle of the track runs through these points, in fractions of the arena
+  // (x: 0 = left edge, 1 = right edge; y: 0 = far edge, 1 = near edge).
+  // It curves smoothly between them; points close together make a tight corner.
+  // The first point is the start/finish line, and the cars drive from it toward the second.
+  // Keep the track from touching itself, or the cars can jump across.
+  points: [
+    [0.5, 0.867], // start/finish line
+    [0.7, 0.867],
+    [0.82, 0.85], // turn 1: a fast left
+    [0.885, 0.767],
+    [0.9, 0.633],
+    [0.9, 0.367],
+    [0.89, 0.2], // the hairpin: all the way round to the left
+    [0.82, 0.117],
+    [0.75, 0.2],
+    [0.74, 0.4],
+    [0.73, 0.533], // a right, into the middle
+    [0.66, 0.6],
+    [0.54, 0.6],
+    [0.49, 0.6], // the chicane: right, left, right
+    [0.44, 0.517],
+    [0.38, 0.5],
+    [0.33, 0.433],
+    [0.32, 0.3],
+    [0.3, 0.167], // a tight left at the top
+    [0.24, 0.133],
+    [0.16, 0.133],
+    [0.09, 0.2],
+    [0.08, 0.333],
+    [0.08, 0.7],
+    [0.1, 0.817],
+    [0.18, 0.867],
+    [0.3, 0.867],
+  ] as [number, number][],
+  width: 0.16, // compared to the arena's height, so the track keeps its shape in every window size
+  edgeLine: 3, // thickness of the white lines along both edges, in world units
+  kerb: 9, // width of the red and white kerbs, in world units
+  kerbCorners: 2.5, // corners tighter than this many track widths get kerbs (0 = no kerbs)
+  colors: {
+    asphalt: '#55585e',
+    edge: '#f1f1f1',
+    kerb: ['#d62828', '#f1f1f1'],
+    checker: ['#1e1e1e', '#f1f1f1'], // start/finish line
+  },
+};
+
 // Floors for the floor picker under the 2D/3D button, in the order it shows them.
-// Floors are only paint: players can walk anywhere. Sizes are in world units.
+// Floors are only paint; the race track is painted on top of every floor. Sizes are in world units.
 export const FLOORS = {
+  grass: { name: 'Grass', emoji: '🌱' },
   street: { name: 'Street', emoji: '🛣️' },
   wood: { name: 'Wooden floor', emoji: '🪵' },
   arcade: { name: 'Arcade', emoji: '🕹️' },
@@ -64,7 +127,18 @@ export const FLOORS = {
   lava: { name: 'The floor is lava', emoji: '🌋' },
 };
 export type FloorName = keyof typeof FLOORS;
-export const FLOOR: FloorName = 'street'; // the floor the game starts on
+export const FLOOR: FloorName = 'grass'; // the floor the game starts on
+
+export const GRASS = {
+  stripe: 60, // width of each mowed stripe
+  tufts: 60,
+  colors: {
+    grass: '#4c9a3c',
+    stripes: 'rgba(255,255,255,0.07)',
+    tufts: 'rgba(20,70,20,0.35)',
+    wall: '#5b3b1e', // front edge of the floor: earth
+  },
+};
 
 export const STREET = {
   sidewalk: 50, // depth of the sidewalks along the far and near edges
@@ -195,14 +269,14 @@ export const PLAYERS: PlayerConfig[] = [
     name: 'Player 1',
     emoji: '🐱',
     color: '#ff6b6b',
-    start: { x: 0.2, y: 0.5 },
+    lane: 0.2,
     controls: { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', action: 'Space' },
   },
   {
     name: 'Player 2',
     emoji: '🐶',
     color: '#4dabf7',
-    start: { x: 0.8, y: 0.5 },
+    lane: 0.8,
     controls: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', action: 'Enter' },
   },
 ];

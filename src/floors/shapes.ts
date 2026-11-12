@@ -14,6 +14,16 @@ export function floorRect(ctx: CanvasRenderingContext2D, x: number, y: number, w
   ctx.closePath();
 }
 
+// Add a flat shape with any corners to the current path.
+export function floorPolygon(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]): void {
+  points.forEach((point, i) => {
+    const p = project(point.x, point.y);
+    if (i === 0) ctx.moveTo(p.sx, p.sy);
+    else ctx.lineTo(p.sx, p.sy);
+  });
+  ctx.closePath();
+}
+
 // Add an ellipse lying flat on the floor to the current path. Small ones can use fewer steps.
 export function floorEllipse(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, steps = 24): void {
   for (let i = 0; i < steps; i++) {
