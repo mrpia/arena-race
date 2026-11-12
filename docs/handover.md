@@ -1,6 +1,6 @@
 # Handover: where the game stands
 
-State after step 9 (online at https://arena-race.mrpia.ch), 2026-11-12. The game itself
+State after step 10 (called "Arena Race"), 2026-11-12. Online since step 9. The gameplay
 hasn't changed since commit `9ef4a00` (one or two players).
 
 ## What the game is
@@ -71,9 +71,9 @@ is in world units.
 
 - The HUD mixes English ("Player 1", "steer: …") and German ("Runde", "LOS!"). Translating it
   was offered. The kids could also put their own names into `PLAYERS`.
-- The project is still called "Arena Starter" in the README title, `package.json` and the
-  page `<title>`. If it's renamed, keep the `localStorage` key prefix `arena-starter.record`
-  in `records.ts`, or the saved best times are lost.
+- The game is called "Arena Race" for now, to match the repo and the domain. The kids may
+  still pick a name of their own. Whatever it becomes, keep the `localStorage` key prefix
+  `arena-starter.record` in `records.ts`, or the saved best times are lost.
 - `IDEAS.md` and `IDEEN.md` still describe the original arena starter (hopping and so on).
 - The cat starts on the inside of turn 1 (a left-hander), a small advantage. The suggestion
   was to swap seats between races.

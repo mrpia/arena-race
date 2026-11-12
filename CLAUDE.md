@@ -1,4 +1,4 @@
-# Arena Starter
+# Arena Race
 
 A top-down race car game for one or two players on one keyboard, built in short sessions
 with kids, who decide what the game should do. Keep it fun to change.

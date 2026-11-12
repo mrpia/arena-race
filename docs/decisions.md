@@ -136,3 +136,13 @@ https://arena-race.mrpia.ch, the same way math-quizz is at https://math-quizz.mr
 - Deploys are manual with `npm run ship`, as for math-quizz. No deploy on push.
 - Not done in this step: renaming "Arena Starter" (page title, `package.json`), and a hint
   for visitors on phones or tablets, who can open the page but can't drive.
+
+## 10. Called "Arena Race", for now
+
+**Asked (by the adult):** stop calling the game "Arena Starter".
+
+- "Arena Race", to match the repo and the domain. The kids may still choose a name of their own.
+- Changed: the page title (the browser tab, bookmarks and link previews), the README and
+  CLAUDE.md headings, and the name in `package.json` and `package-lock.json`.
+- Not changed: the `localStorage` prefix `arena-starter.record` in `records.ts`. A new prefix
+  would lose every saved best time.

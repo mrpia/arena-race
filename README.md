@@ -1,7 +1,7 @@
-# Arena Starter
+# Arena Race
 
-A starting point for a two-player, same-keyboard game: two race cars driving
-around a rectangular arena, seen from above.
+A top-down race car game for one or two players on one keyboard: a cat and a dog race
+three laps round a track, or the cat races alone against the clock.
 
 ```bash
 npm install

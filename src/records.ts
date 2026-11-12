@@ -11,6 +11,7 @@ function trackCode(): string {
   return (h >>> 0).toString(36);
 }
 
+// The prefix is the game's old name. Keep it: a new prefix would lose every saved record.
 function key(): string {
   return `arena-starter.record.${ARENA.width}x${ARENA.height}.${RACE.laps}laps.${trackCode()}`;
 }
