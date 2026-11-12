@@ -90,6 +90,8 @@ export const RACE = {
   // The two buttons in the middle, before the race and again after it.
   // With one player the cat races alone against the clock, steered by either side's keys.
   buttons: { one: 'Start 1 Spieler', two: 'Start 2 Spieler' },
+  // Above the buttons on phones and tablets, where nobody can drive. Gone after the first key press.
+  keyboardHint: '⌨️ Zum Fahren brauchst du eine Tastatur.',
   recordText: 'Rekord', // best time with one player, shown as "Rekord: 41.3 s"
   newRecordText: '🏆 Neuer Rekord!',
   recordColor: '#ffd43b', // color of the new record text

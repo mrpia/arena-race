@@ -1,7 +1,8 @@
 # Handover: where the game stands
 
-State after step 10 (called "Arena Race"), 2026-11-12. Online since step 9. The gameplay
-hasn't changed since commit `9ef4a00` (one or two players).
+State after step 11 (a keyboard hint on phones and tablets), 2026-11-12. Online since step 9,
+called "Arena Race" since step 10. Driving and racing haven't changed since commit `9ef4a00`
+(one or two players).
 
 ## What the game is
 
@@ -117,4 +118,7 @@ DNS records at the registrar.
 - DNS for the `arena-race` host is at the `mrpia.ch` registrar, with the records the Firebase
   console showed. The certificate is Google-managed and renews by itself.
 - The online game keeps its own records: `localStorage` belongs to the origin.
-- Phones and tablets can open the page, but nobody can drive without a keyboard.
+- Phones and tablets can open the page, but nobody can drive without a keyboard. A line above
+  the start buttons says so (`RACE.keyboardHint`). It shows where the main pointer is a finger
+  (`pointer: coarse`) and goes away for good at the first key press. On a 390 px wide phone
+  the HUD's two player names overlap; that was already so before the hint.

@@ -146,3 +146,18 @@ https://arena-race.mrpia.ch, the same way math-quizz is at https://math-quizz.mr
   CLAUDE.md headings, and the name in `package.json` and `package-lock.json`.
 - Not changed: the `localStorage` prefix `arena-starter.record` in `records.ts`. A new prefix
   would lose every saved best time.
+
+## 11. A keyboard hint on phones and tablets
+
+**Asked (by the adult):** a hint for visitors on phones or tablets, who can open the online
+game but can't drive.
+
+- A line above the start buttons: "⌨️ Zum Fahren brauchst du eine Tastatur." (you need a
+  keyboard to drive). It's in `RACE.keyboardHint`, so the kids can reword it.
+- It shows where the main pointer is a finger (the CSS media feature `pointer: coarse`), so
+  computers with a mouse or trackpad never see it. A tablet with a keyboard sees it until the
+  first key press; then it's gone until the page is reloaded.
+- It sits inside the start buttons' box, so it comes and goes with them.
+- The start buttons still work on phones: someone with a Bluetooth keyboard can play.
+- Not chosen yet: touch controls that would let one player drive on a phone. That's a game
+  feature, for the kids to decide.

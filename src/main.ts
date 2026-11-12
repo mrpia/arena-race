@@ -114,6 +114,13 @@ for (const [id, count, label] of startChoices) {
   });
 }
 
+// Phones and tablets can open the game, but nobody can drive without a keyboard. The hint
+// shows where the main pointer is a finger, and goes away for good at the first key press.
+const keyboardHint = document.querySelector<HTMLParagraphElement>('#keyboard-hint')!;
+keyboardHint.textContent = RACE.keyboardHint;
+keyboardHint.hidden = !matchMedia('(pointer: coarse)').matches;
+window.addEventListener('keydown', () => (keyboardHint.hidden = true), { once: true });
+
 const DEBUG_KEY = 'Backquote'; // the key left of 1 (§ on Swiss keyboards)
 initInput([...PLAYERS.flatMap((p) => Object.values(p.controls)), DEBUG_KEY]);
 

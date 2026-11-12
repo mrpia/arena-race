@@ -17,7 +17,8 @@ Click **Start 1 Spieler** or **Start 2 Spieler** in the middle of the screen. Af
 countdown (3, 2, 1, LOS!) the cars drive off; before that they can't move. `COUNTDOWN` in
 `config.ts` sets the texts and times. The lap each player is on shows next to their name.
 A lap only counts if you drove the whole way round, not back and forth over the line.
-After the race the two start buttons come back.
+After the race the two start buttons come back. On phones and tablets a line above them says
+you need a keyboard (`RACE.keyboardHint`); it goes away at the first key press.
 
 - **2 Spieler:** the first car to drive 3 laps wins (`RACE.laps`).
 - **1 Spieler:** the cat races alone against the clock, steered by either side's keys. The
