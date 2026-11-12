@@ -3,6 +3,9 @@
 A top-down race car game for one or two players on one keyboard: a cat and a dog race
 three laps round a track, or the cat races alone against the clock.
 
+It grew out of [arena-starter](https://github.com/mrpia/arena-starter), a starting point for
+two-player browser games on one keyboard (TypeScript, Canvas 2D and Vite, no game framework).
+
 ```bash
 npm install
 npm run dev        # opens http://localhost:5173
