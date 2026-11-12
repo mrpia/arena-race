@@ -70,8 +70,9 @@ is in world units.
 
 ## Open items and ideas (nothing decided)
 
-- The HUD mixes English ("Player 1", "steer: …") and German ("Runde", "LOS!"). Translating it
-  was offered. The kids could also put their own names into `PLAYERS`.
+- The HUD mixes English ("Player 1", "steer: …") and German ("Runde", "LOS!"). A language
+  choice is in the backlog as `i18n` ([BACKLOG.md](BACKLOG.md)). The kids could also put their
+  own names into `PLAYERS`.
 - The game is called "Arena Race" for now, to match the repo and the domain. The kids may
   still pick a name of their own. Whatever it becomes, keep the `localStorage` key prefix
   `arena-starter.record` in `records.ts`, or the saved best times are lost.

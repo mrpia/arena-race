@@ -11,6 +11,7 @@ Read them in this order:
    how to check a change, and the traps we already fell into.
 3. [decisions.md](decisions.md): every step so far, what the kids chose and why. If
    something in the code looks odd, check here first: it may be on purpose.
+4. [BACKLOG.md](BACKLOG.md): ideas not built yet, each under a short slug.
 
 The rules for the code itself are in [CLAUDE.md](../CLAUDE.md). The player-facing overview
 (controls, where things are, how to tweak them) is in the main [README](../README.md).
@@ -25,4 +26,5 @@ working directory later) and give it the next wish, for example:
 ## Keeping these notes current
 
 When a step is finished, update `handover.md` (state, numbers, open items) and add an entry
-to `decisions.md`, in the same commit as the code.
+to `decisions.md`, in the same commit as the code. New ideas go into `BACKLOG.md` under a
+slug; when one is built, delete its entry there.
