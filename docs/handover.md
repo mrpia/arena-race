@@ -68,11 +68,12 @@ is in world units.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
 
-## Open items and ideas (nothing decided)
+## Open items
+
+Known loose ends. Ideas for new features are in [BACKLOG.md](BACKLOG.md).
 
 - The HUD mixes English ("Player 1", "steer: …") and German ("Runde", "LOS!"). A language
-  choice is in the backlog as `i18n` ([BACKLOG.md](BACKLOG.md)). The kids could also put their
-  own names into `PLAYERS`.
+  choice is in the backlog as `i18n`, and the kids' own names as `player-names`.
 - The game is called "Arena Race" for now, to match the repo and the domain. The kids may
   still pick a name of their own. Whatever it becomes, keep the `localStorage` key prefix
   `arena-starter.record` in `records.ts`, or the saved best times are lost.
@@ -81,8 +82,6 @@ is in world units.
   was to swap seats between races.
 - Resizing the window during a race moves the track under the cars; they're only put back on
   the start line before the start.
-- Mentioned but not chosen yet: a turbo after drifting, a computer-driven opponent for
-  one-player mode, lap times in two-player mode.
 
 ## Running it
 
