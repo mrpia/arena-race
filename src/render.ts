@@ -1,4 +1,4 @@
-import { CAR, COLORS, type Controls, PLAYERS, VIEW } from './config';
+import { CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, VIEW } from './config';
 import { project, toPixels } from './camera';
 import { drawFloor } from './floors';
 import type { Player } from './player';
@@ -136,11 +136,35 @@ function drawHud(ctx: CanvasRenderingContext2D, showKeys: string[] | null): void
   }
 }
 
-export function render(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
+// The big "3", "2", "1", "LOS!" in the middle of the screen. Each one pops in big, settles, and fades out.
+function drawCountdown(ctx: CanvasRenderingContext2D, sign: { text: string; age: number; go: boolean }): void {
+  const pop = 1 + 0.5 * Math.pow(1 - Math.min(1, sign.age * 4), 3);
+  const size = Math.min(VIEW.height * 0.3, 220) * pop;
+  ctx.save();
+  ctx.globalAlpha = sign.age > 0.8 ? (1 - sign.age) / 0.2 : 1;
+  ctx.font = `bold ${Math.round(size)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = size / 10;
+  ctx.strokeStyle = COUNTDOWN.colors.outline;
+  ctx.strokeText(sign.text, VIEW.width / 2, VIEW.height / 2);
+  ctx.fillStyle = sign.go ? COUNTDOWN.colors.go : COUNTDOWN.colors.numbers;
+  ctx.fillText(sign.text, VIEW.width / 2, VIEW.height / 2);
+  ctx.restore();
+}
+
+export function render(
+  ctx: CanvasRenderingContext2D,
+  players: Player[],
+  showKeys: string[] | null,
+  countdown: { text: string; age: number; go: boolean } | null,
+): void {
   ctx.fillStyle = COLORS.background;
   ctx.fillRect(0, 0, VIEW.width, VIEW.height);
   drawFloor(ctx);
   // Draw far players first so near ones overlap them.
   [...players].sort((a, b) => a.y - b.y).forEach((p) => drawCar(ctx, p));
   drawHud(ctx, showKeys);
+  if (countdown) drawCountdown(ctx, countdown);
 }

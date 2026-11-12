@@ -64,6 +64,20 @@ export const COLORS = {
   text: '#ffffff',
 };
 
+// Before the race: a start button, then a countdown. The cars wait at the start line until it's done.
+export const COUNTDOWN = {
+  button: '🏁 Start',
+  from: 3, // counts 3, 2, 1
+  step: 1, // seconds each number stays up
+  go: 'LOS!', // shown when the cars may drive
+  goTime: 0.8, // seconds the go sign stays up (the cars are already driving)
+  colors: {
+    numbers: '#ffd43b',
+    go: '#51cf66',
+    outline: '#1b1f2a',
+  },
+};
+
 // The race track. It lies on top of whichever floor is picked, and off the track the cars are slower.
 export const TRACK = {
   // The middle of the track runs through these points, in fractions of the arena

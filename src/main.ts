@@ -1,14 +1,19 @@
-import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, PLAYERS, VIEW } from './config';
+import { CAMERA, CAMERAS, type CameraName, COUNTDOWN, FLOOR, FLOORS, type FloorName, PLAYERS, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, setCamera } from './camera';
 import { setFloor } from './floors';
+import { carsCanDrive, countdownSign, racePhase, startCountdown, updateRace } from './race';
 import { render } from './render';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
 const ctx = canvas.getContext('2d')!;
 
 let players: Player[] = [];
+
+function placeCarsAtStart(): void {
+  players = PLAYERS.map((cfg) => new Player(cfg));
+}
 
 // Fill the whole window, sharp on HiDPI screens. The arena grows or shrinks to match.
 function resize(): void {
@@ -19,8 +24,10 @@ function resize(): void {
   canvas.width = Math.round(VIEW.width * dpr);
   canvas.height = Math.round(VIEW.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // If the arena shrank, push players back inside the walls.
-  for (const p of players) p.stayInArena();
+  // The track changes with the window. Before the start, put the cars back at the start line;
+  // during the race, just push them back inside the walls if the arena shrank.
+  if (racePhase() === 'waiting') placeCarsAtStart();
+  else for (const p of players) p.stayInArena();
 }
 window.addEventListener('resize', resize);
 resize();
@@ -81,15 +88,29 @@ window.addEventListener('keydown', (e) => {
 });
 chooseFloor(FLOOR);
 
+// Start button in the middle: puts the cars at the start line and begins the countdown.
+const startButton = document.querySelector<HTMLButtonElement>('#start')!;
+startButton.textContent = COUNTDOWN.button;
+startButton.addEventListener('click', () => {
+  placeCarsAtStart();
+  startCountdown();
+  startButton.hidden = true;
+  // Let go of focus, or Space (a player's action key) would click it again.
+  startButton.blur();
+});
+
 const DEBUG_KEY = 'Backquote'; // the key left of 1 (§ on Swiss keyboards)
 initInput([...PLAYERS.flatMap((p) => Object.values(p.controls)), DEBUG_KEY]);
 
-players = PLAYERS.map((cfg) => new Player(cfg));
 let showKeys = false;
 
 function update(dt: number): void {
   if (wasPressed(DEBUG_KEY)) showKeys = !showKeys;
-  for (const p of players) p.update(dt);
+  updateRace(dt);
+  // Before "LOS!" the cars can't drive, steer or hop.
+  if (carsCanDrive()) {
+    for (const p of players) p.update(dt);
+  }
   for (let i = 0; i < players.length; i++) {
     for (let j = i + 1; j < players.length; j++) separate(players[i], players[j]);
   }
@@ -108,7 +129,7 @@ function frame(now: number): void {
     update(STEP);
     acc -= STEP;
   }
-  render(ctx, players, showKeys ? heldKeys() : null);
+  render(ctx, players, showKeys ? heldKeys() : null, countdownSign());
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
