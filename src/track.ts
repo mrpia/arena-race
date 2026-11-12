@@ -80,18 +80,9 @@ function buildTires(middle: TrackPoint[], halfWidth: number): TrackPoint[] {
   const away: number[] = []; // and how far away it is
   for (let row = 0; row < rows; row++) {
     for (let c = 0; c < cols; c++) {
-      const p = spot(c, row);
-      let best = 0;
-      let bestD = Infinity;
-      middle.forEach((m, i) => {
-        const d = (m.x - p.x) ** 2 + (m.y - p.y) ** 2;
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      });
-      nearest.push(best);
-      away.push(Math.sqrt(bestD));
+      const closest = closestPoint(middle, spot(c, row));
+      nearest.push(closest.index);
+      away.push(closest.distance);
     }
   }
   const at = (c: number, row: number) => row * cols + c;
@@ -139,6 +130,26 @@ function buildTires(middle: TrackPoint[], halfWidth: number): TrackPoint[] {
 
 function dist(a: TrackPoint, b: TrackPoint): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
+}
+
+// Which of the points is closest to p, and how far away it is.
+function closestPoint(points: TrackPoint[], p: TrackPoint): { index: number; distance: number } {
+  let index = 0;
+  let best = Infinity;
+  points.forEach((m, i) => {
+    const d = (m.x - p.x) ** 2 + (m.y - p.y) ** 2;
+    if (d < best) {
+      best = d;
+      index = i;
+    }
+  });
+  return { index, distance: Math.sqrt(best) };
+}
+
+// How far round the track (x, y) is: 0 at the start/finish line, going up to just under 1.
+export function lapPosition(x: number, y: number): number {
+  const { middle } = getTrack();
+  return closestPoint(middle, { x, y }).index / middle.length;
 }
 
 function mix(a: TrackPoint, b: TrackPoint, k: number): TrackPoint {

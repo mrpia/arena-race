@@ -1,7 +1,8 @@
-import { CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, VIEW } from './config';
+import { CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, RACE, VIEW } from './config';
 import { project, toPixels } from './camera';
 import { drawFloor } from './floors';
 import type { Player } from './player';
+import { countdownSign, lapsDone, raceWinners } from './race';
 
 // A point on the car: `forward` toward its nose, `side` toward its right, in world units from its middle.
 type CarPoint = [forward: number, side: number];
@@ -97,7 +98,13 @@ function controlsText(c: Controls): { move: string; action: string } {
   };
 }
 
-function drawHud(ctx: CanvasRenderingContext2D, showKeys: string[] | null): void {
+// "Runde 2/3": the lap the player is on now, or the finish flag once they've done them all.
+function lapLabel(p: Player | undefined): string {
+  const done = p ? lapsDone(p) : 0;
+  return done >= RACE.laps ? RACE.finishedText : `${RACE.lapText} ${done + 1}/${RACE.laps}`;
+}
+
+function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
   ctx.textBaseline = 'top';
 
   // In narrow windows the two players' control lines would collide in the middle,
@@ -116,7 +123,12 @@ function drawHud(ctx: CanvasRenderingContext2D, showKeys: string[] | null): void
     const x = left ? 24 : VIEW.width - 24;
     ctx.font = 'bold 22px system-ui, sans-serif';
     ctx.fillStyle = cfg.color;
-    ctx.fillText(`${cfg.emoji} ${cfg.name}`, x, 20);
+    const name = `${cfg.emoji} ${cfg.name}`;
+    ctx.fillText(name, x, 20);
+    // The lap counter sits next to the name, on the side toward the middle of the screen.
+    const gap = ctx.measureText(name).width + 18;
+    ctx.fillStyle = COLORS.text;
+    ctx.fillText(lapLabel(players[i]), left ? x + gap : x - gap, 20);
     ctx.font = '14px system-ui, sans-serif';
     ctx.fillStyle = COLORS.text;
     if (split) {
@@ -154,17 +166,41 @@ function drawCountdown(ctx: CanvasRenderingContext2D, sign: { text: string; age:
   ctx.restore();
 }
 
-export function render(
-  ctx: CanvasRenderingContext2D,
-  players: Player[],
-  showKeys: string[] | null,
-  countdown: { text: string; age: number; go: boolean } | null,
-): void {
+// "🐱 Player 1 gewinnt!" above the Nochmal button, in the winner's color.
+function drawWinner(ctx: CanvasRenderingContext2D, winners: Player[]): void {
+  const one = winners.length === 1 ? winners[0].config : null;
+  const text = one ? `${one.emoji} ${one.name} ${RACE.winText}` : RACE.tieText;
+  const font = (size: number) => `bold ${Math.round(size)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+  let size = Math.min(VIEW.height * 0.12, 72);
+  ctx.save();
+  ctx.font = font(size);
+  // Shrink it to fit narrow windows.
+  const width = ctx.measureText(text).width;
+  if (width > VIEW.width * 0.9) {
+    size *= (VIEW.width * 0.9) / width;
+    ctx.font = font(size);
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = size / 8;
+  ctx.strokeStyle = COUNTDOWN.colors.outline;
+  const y = VIEW.height / 2 - 90;
+  ctx.strokeText(text, VIEW.width / 2, y);
+  ctx.fillStyle = one ? one.color : COLORS.text;
+  ctx.fillText(text, VIEW.width / 2, y);
+  ctx.restore();
+}
+
+export function render(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
   ctx.fillStyle = COLORS.background;
   ctx.fillRect(0, 0, VIEW.width, VIEW.height);
   drawFloor(ctx);
   // Draw far players first so near ones overlap them.
   [...players].sort((a, b) => a.y - b.y).forEach((p) => drawCar(ctx, p));
-  drawHud(ctx, showKeys);
-  if (countdown) drawCountdown(ctx, countdown);
+  drawHud(ctx, players, showKeys);
+  const sign = countdownSign();
+  if (sign) drawCountdown(ctx, sign);
+  const winners = raceWinners();
+  if (winners.length > 0) drawWinner(ctx, winners);
 }

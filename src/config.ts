@@ -64,6 +64,16 @@ export const COLORS = {
   text: '#ffffff',
 };
 
+// The race: how many laps you need to win, and the words shown on screen.
+export const RACE = {
+  laps: 3, // laps you have to drive to win
+  lapText: 'Runde', // shown as "Runde 2/3" next to each player's name
+  finishedText: '🏁 Ziel!', // next to the name once you've done all the laps
+  winText: 'gewinnt!', // "🐱 Player 1 gewinnt!"
+  tieText: 'Unentschieden!', // both cars cross the line at the same moment
+  againButton: '🔁 Nochmal',
+};
+
 // Before the race: a start button, then a countdown. The cars wait at the start line until it's done.
 export const COUNTDOWN = {
   button: '🏁 Start',

@@ -1,9 +1,9 @@
-import { CAMERA, CAMERAS, type CameraName, COUNTDOWN, FLOOR, FLOORS, type FloorName, PLAYERS, VIEW } from './config';
+import { CAMERA, CAMERAS, type CameraName, COUNTDOWN, FLOOR, FLOORS, type FloorName, PLAYERS, RACE, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, setCamera } from './camera';
 import { setFloor } from './floors';
-import { carsCanDrive, countdownSign, racePhase, startCountdown, updateRace } from './race';
+import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
 import { render } from './render';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
@@ -89,6 +89,7 @@ window.addEventListener('keydown', (e) => {
 chooseFloor(FLOOR);
 
 // Start button in the middle: puts the cars at the start line and begins the countdown.
+// After a race it comes back as the Nochmal button.
 const startButton = document.querySelector<HTMLButtonElement>('#start')!;
 startButton.textContent = COUNTDOWN.button;
 startButton.addEventListener('click', () => {
@@ -107,12 +108,17 @@ let showKeys = false;
 function update(dt: number): void {
   if (wasPressed(DEBUG_KEY)) showKeys = !showKeys;
   updateRace(dt);
-  // Before "LOS!" the cars can't drive, steer or hop.
+  // Before "LOS!" and after someone has won, the cars can't drive, steer or hop.
   if (carsCanDrive()) {
     for (const p of players) p.update(dt);
-  }
-  for (let i = 0; i < players.length; i++) {
-    for (let j = i + 1; j < players.length; j++) separate(players[i], players[j]);
+    for (let i = 0; i < players.length; i++) {
+      for (let j = i + 1; j < players.length; j++) separate(players[i], players[j]);
+    }
+    countLaps(players);
+    if (racePhase() === 'finished') {
+      startButton.textContent = RACE.againButton;
+      startButton.hidden = false;
+    }
   }
   endFrame();
 }
@@ -129,7 +135,7 @@ function frame(now: number): void {
     update(STEP);
     acc -= STEP;
   }
-  render(ctx, players, showKeys ? heldKeys() : null, countdownSign());
+  render(ctx, players, showKeys ? heldKeys() : null);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -23,6 +23,9 @@ export class Player {
   vz = 0;
   radius = PLAYER_RADIUS;
   bouncing = 0; // seconds left sliding back after hitting the tires
+  // Stretches of track driven through in order (see race.ts). Cars start just behind the
+  // start/finish line, so crossing it for the first time brings this to 0: the first lap begins.
+  sectorsPassed = -1;
 
   constructor(public config: PlayerConfig) {
     const spot = startSpot(config.lane);

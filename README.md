@@ -15,6 +15,9 @@ npm run dev        # opens http://localhost:5173
 
 Click 🏁 Start in the middle of the screen. After the countdown (3, 2, 1, LOS!) the cars
 drive off; before that they can't move. `COUNTDOWN` in `config.ts` sets the texts and times.
+The first car to drive 3 laps wins (`RACE.laps`); the lap each player is on shows next to
+their name. A lap only counts if you drove the whole way round, not back and forth over
+the line. Then 🔁 Nochmal starts a new race.
 
 The cars always drive at the same speed (`PLAYER_SPEED` in `config.ts`); left and right
 turn them. Up and down aren't used yet.
@@ -40,7 +43,7 @@ Out of ideas? See [IDEAS.md](IDEAS.md) for themes, twists and example prompts ([
 ## Where things are
 
 - `src/config.ts` – players, emojis, colors, speed, keys, camera views, floors. Start here.
-- `src/race.ts` – how far the race has got: waiting for the start button, countdown, racing.
+- `src/race.ts` – how far the race has got (start button, countdown, racing, finished), counting laps and picking the winner.
 - `src/player.ts` – driving and steering, hop, bumping into each other.
 - `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
 - `src/camera.ts` – the 2D and 3D views, fitted to the window. `project()` turns world positions into screen positions.
