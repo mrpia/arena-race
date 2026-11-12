@@ -1,7 +1,10 @@
 # Arena Starter
 
-A two-player same-keyboard browser game built in short sessions with a
-10-year-old, who decides what the game should do. Keep it fun to change.
+A top-down race car game for one or two players on one keyboard, built in short sessions
+with kids, who decide what the game should do. Keep it fun to change.
+
+Before starting work, read `docs/README.md`: where the game stands, what was decided and why,
+how we work and how to check a change.
 
 - Plain TypeScript + Canvas 2D + Vite. No game framework, no other runtime dependencies.
 - One feature per request. Keep the game playable after every change.
@@ -19,3 +22,5 @@ A two-player same-keyboard browser game built in short sessions with a
   (P1 left side of the keyboard, P2 arrows/right side).
 - Both players must stay equally strong unless the kids ask for an asymmetric game.
 - Run `npm run typecheck` after changes.
+- After each finished step, commit and push to the current branch, one commit per step, and
+  update `docs/handover.md` and `docs/decisions.md` in the same commit.
