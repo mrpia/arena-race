@@ -3,6 +3,8 @@
 A top-down race car game for one or two players on one keyboard: a cat and a dog race
 three laps round a track, or the cat races alone against the clock.
 
+Play it at https://arena-race.mrpia.ch (you need a keyboard).
+
 It grew out of [arena-starter](https://github.com/mrpia/arena-starter), a starting point for
 two-player browser games on one keyboard (TypeScript, Canvas 2D and Vite, no game framework).
 
@@ -71,8 +73,9 @@ starts in, and `CAMERAS` how each view looks.
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.
 
-`npm run build` type-checks and writes a static site to `dist/`, which you can open
-from any web server or zip up and share.
+`npm run build` type-checks and writes the static site to `dist/`. Its files are linked as
+`/assets/…`, so it has to be served from the root of a web server; `npm run preview` does
+that locally. To share the game, send the link at the top.
 
 ## Putting it online
 

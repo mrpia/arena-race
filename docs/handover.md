@@ -82,7 +82,6 @@ is in world units.
   the start line before the start.
 - Mentioned but not chosen yet: a turbo after drifting, a computer-driven opponent for
   one-player mode, lap times in two-player mode.
-- `.playwright-mcp/` (screenshots from browser tests) isn't in `.gitignore`.
 
 ## Running it
 
@@ -101,10 +100,6 @@ https://arena-race.mrpia.ch (also https://arena-race.web.app) serves the built `
 Firebase Hosting. `npm run ship` builds and deploys. Deploys are manual, as for math-quizz:
 nothing deploys on push.
 
-Status on 2026-11-12: deployed and checked on https://arena-race.web.app. The custom domain
-https://arena-race.mrpia.ch isn't connected yet: it needs the Firebase console step and the
-DNS records at the registrar.
-
 - Firebase project `modern-ally-102412`, shared with math-quizz. math-quizz is the project's
   default site; this game is the second site, `arena-race`. `firebase.json` deploys to the
   target `game`, which `.firebaserc` maps to `arena-race`. Don't drop the target.
@@ -115,8 +110,9 @@ DNS records at the registrar.
   math-quizz found that `index.html` otherwise gets Hosting's default `max-age=3600`
   (math-quizz commit `47fef35`). No rewrite to `index.html`: the game has no routes, so an
   unknown path gets a 404.
-- DNS for the `arena-race` host is at the `mrpia.ch` registrar, with the records the Firebase
-  console showed. The certificate is Google-managed and renews by itself.
+- DNS for `mrpia.ch` is at Infomaniak. `arena-race` is a CNAME to `arena-race.web.app`, as
+  the Firebase console asked (math-quizz is a CNAME to `modern-ally-102412.web.app`). The
+  certificate is Google-managed and renews by itself.
 - The online game keeps its own records: `localStorage` belongs to the origin.
 - Phones and tablets can open the page, but nobody can drive without a keyboard. A line above
   the start buttons says so (`RACE.keyboardHint`). It shows where the main pointer is a finger

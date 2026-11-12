@@ -34,7 +34,7 @@
 ### Browser test recipes (Playwright MCP)
 
 - Screenshots can only be saved inside the project folder; the tool puts them in
-  `.playwright-mcp/`. Delete that folder afterwards: it isn't in `.gitignore`.
+  `.playwright-mcp/`, which git ignores. Delete it afterwards anyway.
 - To use game modules from inside the page, import the exact URL the game loaded. After an
   edit, Vite serves changed modules with a `?t=` timestamp, so `import('/src/config.ts')` can
   return a second, fresh copy with default values:
