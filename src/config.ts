@@ -87,12 +87,16 @@ export const RACE = {
   finishedText: '🏁 Ziel!', // next to the name once you've done all the laps
   winText: 'gewinnt!', // "🐱 Player 1 gewinnt!"
   tieText: 'Unentschieden!', // both cars cross the line at the same moment
-  againButton: '🔁 Nochmal',
+  // The two buttons in the middle, before the race and again after it.
+  // With one player the cat races alone against the clock, steered by either side's keys.
+  buttons: { one: 'Start 1 Spieler', two: 'Start 2 Spieler' },
+  recordText: 'Rekord', // best time with one player, shown as "Rekord: 41.3 s"
+  newRecordText: '🏆 Neuer Rekord!',
+  recordColor: '#ffd43b', // color of the new record text
 };
 
 // Before the race: a start button, then a countdown. The cars wait at the start line until it's done.
 export const COUNTDOWN = {
-  button: '🏁 Start',
   from: 3, // counts 3, 2, 1
   step: 1, // seconds each number stays up
   go: 'LOS!', // shown when the cars may drive

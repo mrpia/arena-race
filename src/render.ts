@@ -1,8 +1,9 @@
-import { ARENA, CAR, COLORS, type Controls, COUNTDOWN, PLAYERS, RACE, SKID_MARKS, VIEW } from './config';
+import { ARENA, CAR, COLORS, type Controls, COUNTDOWN, RACE, SKID_MARKS, VIEW } from './config';
 import { project, toPixels } from './camera';
 import { drawFloor } from './floors';
 import type { Player } from './player';
-import { countdownSign, lapsDone, raceWinners } from './race';
+import { countdownSign, lapsDone, raceTime, raceWinners, soloResult } from './race';
+import { bestTime } from './records';
 import { skidMarks } from './skidmarks';
 
 // A point on the car: `forward` toward its nose, `side` toward its right, in world units from its middle.
@@ -85,33 +86,40 @@ function keyLabel(code: string): string {
   return code.replace(/^Key/, '').replace(/^Arrow/, '');
 }
 
-function controlsText(c: Controls): { steer: string; buttons: string } {
+// Every key set that steers the car: "steer: A D / Left Right", "brake: S / Down   drift: Space / Enter".
+function controlsText(sets: Controls[]): { steer: string; buttons: string } {
+  const keys = (pick: (c: Controls) => string[]) => sets.map((c) => pick(c).map(keyLabel).join(' ')).join(' / ');
   return {
-    steer: `steer: ${[c.left, c.right].map(keyLabel).join(' ')}`,
-    buttons: `brake: ${keyLabel(c.brake)}   drift: ${keyLabel(c.drift)}`,
+    steer: `steer: ${keys((c) => [c.left, c.right])}`,
+    buttons: `brake: ${keys((c) => [c.brake])}   drift: ${keys((c) => [c.drift])}`,
   };
 }
 
+function seconds(t: number): string {
+  return `${t.toFixed(1)} s`;
+}
+
 // "Runde 2/3": the lap the player is on now, or the finish flag once they've done them all.
-function lapLabel(p: Player | undefined): string {
-  const done = p ? lapsDone(p) : 0;
+function lapLabel(p: Player): string {
+  const done = lapsDone(p);
   return done >= RACE.laps ? RACE.finishedText : `${RACE.lapText} ${done + 1}/${RACE.laps}`;
 }
 
 function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
   ctx.textBaseline = 'top';
+  const solo = players.length === 1;
 
-  // In narrow windows the two players' control lines would collide in the middle,
-  // so split each into a "steer" line and a "brake, drift" line.
+  // In narrow windows the control lines would collide in the middle (with the other player's,
+  // or with the stopwatch), so split each into a "steer" line and a "brake, drift" line.
   ctx.font = '14px system-ui, sans-serif';
-  const oneLine = PLAYERS.map((cfg) => {
-    const t = controlsText(cfg.controls);
-    return `${t.steer}   ${t.buttons}`;
-  });
+  const texts = players.map((p) => controlsText(p.controls));
+  const oneLine = texts.map((t) => `${t.steer}   ${t.buttons}`);
   const widths = oneLine.map((line) => ctx.measureText(line).width);
-  const split = widths[0] + widths[1] + 2 * 24 + 24 > VIEW.width;
+  const stopwatch = solo ? 180 : 0; // room the stopwatch needs on the right
+  const split = widths.reduce((a, b) => a + b, 0) + stopwatch + 2 * 24 + 24 > VIEW.width;
 
-  PLAYERS.forEach((cfg, i) => {
+  players.forEach((p, i) => {
+    const cfg = p.config;
     const left = i === 0;
     ctx.textAlign = left ? 'left' : 'right';
     const x = left ? 24 : VIEW.width - 24;
@@ -122,17 +130,18 @@ function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: str
     // The lap counter sits next to the name, on the side toward the middle of the screen.
     const gap = ctx.measureText(name).width + 18;
     ctx.fillStyle = COLORS.text;
-    ctx.fillText(lapLabel(players[i]), left ? x + gap : x - gap, 20);
+    ctx.fillText(lapLabel(p), left ? x + gap : x - gap, 20);
     ctx.font = '14px system-ui, sans-serif';
     ctx.fillStyle = COLORS.text;
     if (split) {
-      const t = controlsText(cfg.controls);
-      ctx.fillText(t.steer, x, 50);
-      ctx.fillText(t.buttons, x, 68);
+      ctx.fillText(texts[i].steer, x, 50);
+      ctx.fillText(texts[i].buttons, x, 68);
     } else {
       ctx.fillText(oneLine[i], x, 50);
     }
   });
+
+  if (solo) drawStopwatch(ctx);
 
   if (showKeys) {
     ctx.textAlign = 'center';
@@ -140,6 +149,18 @@ function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: str
     ctx.fillStyle = '#ffd43b';
     ctx.fillText(`held (${showKeys.length}): ${showKeys.join(' ')}`, VIEW.width / 2, VIEW.height - 28);
   }
+}
+
+// Racing alone: the time since "LOS!" and the record, on the right where player 2 would be.
+function drawStopwatch(ctx: CanvasRenderingContext2D): void {
+  const x = VIEW.width - 24;
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+  ctx.fillStyle = COLORS.text;
+  ctx.fillText(`⏱ ${seconds(raceTime())}`, x, 20);
+  ctx.font = '14px system-ui, sans-serif';
+  const best = bestTime();
+  ctx.fillText(`${RACE.recordText}: ${best === null ? '–' : seconds(best)}`, x, 50);
 }
 
 // The big "3", "2", "1", "LOS!" in the middle of the screen. Each one pops in big, settles, and fades out.
@@ -160,15 +181,12 @@ function drawCountdown(ctx: CanvasRenderingContext2D, sign: { text: string; age:
   ctx.restore();
 }
 
-// "🐱 Player 1 gewinnt!" above the Nochmal button, in the winner's color.
-function drawWinner(ctx: CanvasRenderingContext2D, winners: Player[]): void {
-  const one = winners.length === 1 ? winners[0].config : null;
-  const text = one ? `${one.emoji} ${one.name} ${RACE.winText}` : RACE.tieText;
+// Big outlined text across the middle of the screen, shrunk to fit narrow windows.
+function drawBigText(ctx: CanvasRenderingContext2D, text: string, color: string, y: number, maxSize: number): void {
   const font = (size: number) => `bold ${Math.round(size)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-  let size = Math.min(VIEW.height * 0.12, 72);
+  let size = Math.min(VIEW.height * 0.12, maxSize);
   ctx.save();
   ctx.font = font(size);
-  // Shrink it to fit narrow windows.
   const width = ctx.measureText(text).width;
   if (width > VIEW.width * 0.9) {
     size *= (VIEW.width * 0.9) / width;
@@ -179,11 +197,27 @@ function drawWinner(ctx: CanvasRenderingContext2D, winners: Player[]): void {
   ctx.lineJoin = 'round';
   ctx.lineWidth = size / 8;
   ctx.strokeStyle = COUNTDOWN.colors.outline;
-  const y = VIEW.height / 2 - 90;
   ctx.strokeText(text, VIEW.width / 2, y);
-  ctx.fillStyle = one ? one.color : COLORS.text;
+  ctx.fillStyle = color;
   ctx.fillText(text, VIEW.width / 2, y);
   ctx.restore();
+}
+
+// After the race, above the start buttons: "🐱 Player 1 gewinnt!" in the winner's color,
+// or racing alone, the time and the record.
+function drawResult(ctx: CanvasRenderingContext2D, players: Player[], winners: Player[]): void {
+  const middle = VIEW.height / 2;
+  const solo = soloResult();
+  if (players.length === 1 && solo) {
+    drawBigText(ctx, `🏁 ${seconds(solo.time)}`, players[0].config.color, middle - 150, 72);
+    const best = bestTime();
+    const line = solo.newRecord ? RACE.newRecordText : `${RACE.recordText}: ${best === null ? '–' : seconds(best)}`;
+    drawBigText(ctx, line, solo.newRecord ? RACE.recordColor : COLORS.text, middle - 85, 40);
+    return;
+  }
+  const one = winners.length === 1 ? winners[0].config : null;
+  const text = one ? `${one.emoji} ${one.name} ${RACE.winText}` : RACE.tieText;
+  drawBigText(ctx, text, one ? one.color : COLORS.text, middle - 90, 72);
 }
 
 // Skid marks on the floor. Older ones are fainter; they're drawn in a few batches, one per shade.
@@ -221,5 +255,5 @@ export function render(ctx: CanvasRenderingContext2D, players: Player[], showKey
   const sign = countdownSign();
   if (sign) drawCountdown(ctx, sign);
   const winners = raceWinners();
-  if (winners.length > 0) drawWinner(ctx, winners);
+  if (winners.length > 0) drawResult(ctx, players, winners);
 }

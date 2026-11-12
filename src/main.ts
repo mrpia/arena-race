@@ -1,4 +1,4 @@
-import { CAMERA, CAMERAS, type CameraName, COUNTDOWN, FLOOR, FLOORS, type FloorName, PLAYERS, RACE, VIEW } from './config';
+import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, PLAYERS, RACE, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, setCamera } from './camera';
@@ -13,8 +13,12 @@ const ctx = canvas.getContext('2d')!;
 let players: Player[] = [];
 
 // A fresh start: cars at the start line, last race's skid marks gone.
-function placeCarsAtStart(): void {
-  players = PLAYERS.map((cfg) => new Player(cfg));
+// Racing alone, the cat starts in the middle of the line and both sides' keys steer it.
+function placeCarsAtStart(count: 1 | 2): void {
+  players =
+    count === 1
+      ? [new Player(PLAYERS[0], { lane: 0.5, controls: PLAYERS.map((cfg) => cfg.controls) })]
+      : PLAYERS.map((cfg) => new Player(cfg));
   clearSkidMarks();
 }
 
@@ -29,7 +33,7 @@ function resize(): void {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   // The track changes with the window. Before the start, put the cars back at the start line;
   // during the race, just push them back inside the walls if the arena shrank.
-  if (racePhase() === 'waiting') placeCarsAtStart();
+  if (racePhase() === 'waiting') placeCarsAtStart(players.length === 1 ? 1 : 2);
   else for (const p of players) p.stayInArena();
 }
 window.addEventListener('resize', resize);
@@ -91,17 +95,24 @@ window.addEventListener('keydown', (e) => {
 });
 chooseFloor(FLOOR);
 
-// Start button in the middle: puts the cars at the start line and begins the countdown.
-// After a race it comes back as the Nochmal button.
-const startButton = document.querySelector<HTMLButtonElement>('#start')!;
-startButton.textContent = COUNTDOWN.button;
-startButton.addEventListener('click', () => {
-  placeCarsAtStart();
-  startCountdown();
-  startButton.hidden = true;
-  // Let go of focus, or Space (a player's drift key) would click it again.
-  startButton.blur();
-});
+// The two start buttons in the middle: race alone against the clock, or two players.
+// Either one puts the cars at the start line and begins the countdown. They come back after each race.
+const startButtons = document.querySelector<HTMLDivElement>('#start-buttons')!;
+const startChoices: [string, 1 | 2, string][] = [
+  ['#start-1', 1, RACE.buttons.one],
+  ['#start-2', 2, RACE.buttons.two],
+];
+for (const [id, count, label] of startChoices) {
+  const button = document.querySelector<HTMLButtonElement>(id)!;
+  button.textContent = label;
+  button.addEventListener('click', () => {
+    placeCarsAtStart(count);
+    startCountdown();
+    startButtons.hidden = true;
+    // Let go of focus, or Space (a player's drift key) would click it again.
+    button.blur();
+  });
+}
 
 const DEBUG_KEY = 'Backquote'; // the key left of 1 (§ on Swiss keyboards)
 initInput([...PLAYERS.flatMap((p) => Object.values(p.controls)), DEBUG_KEY]);
@@ -119,10 +130,7 @@ function update(dt: number): void {
       for (let j = i + 1; j < players.length; j++) separate(players[i], players[j]);
     }
     countLaps(players);
-    if (racePhase() === 'finished') {
-      startButton.textContent = RACE.againButton;
-      startButton.hidden = false;
-    }
+    if (racePhase() === 'finished') startButtons.hidden = false;
   }
   endFrame();
 }

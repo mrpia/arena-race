@@ -29,19 +29,23 @@
         background: rgba(20, 24, 34, 0.92); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
       }
       #floor-picker[hidden] { display: none; }
-      #start {
+      #start-buttons {
         position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
-        padding: 18px 44px; cursor: pointer; user-select: none;
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+        width: max-content; max-width: calc(100vw - 32px);
+      }
+      #start-buttons[hidden] { display: none; }
+      .start {
+        padding: 18px 36px; cursor: pointer; user-select: none;
         font: bold 36px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
         color: #1b1f2a; background: #ffd43b; border: none; border-radius: 16px;
         box-shadow: 0 6px 0 #c99a00, 0 10px 24px rgba(0, 0, 0, 0.5);
       }
-      #start:hover { background: #ffe066; }
-      #start:active {
-        transform: translate(-50%, calc(-50% + 4px));
+      .start:hover { background: #ffe066; }
+      .start:active {
+        transform: translateY(4px);
         box-shadow: 0 2px 0 #c99a00, 0 6px 16px rgba(0, 0, 0, 0.5);
       }
-      #start[hidden] { display: none; }
     </style>
   </head>
   <body>
@@ -53,7 +57,10 @@
         <div id="floor-picker" hidden></div>
       </div>
     </div>
-    <button id="start" type="button"></button>
+    <div id="start-buttons">
+      <button id="start-1" class="start" type="button"></button>
+      <button id="start-2" class="start" type="button"></button>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -2,6 +2,7 @@ import {
   ARENA,
   BRAKE_SPEED,
   CAR,
+  type Controls,
   DRIFT,
   OFF_TRACK_SPEED,
   PLAYER_GRIP,
@@ -18,6 +19,11 @@ import { getTrack, onTrack, startSpot } from './track';
 
 type Spot = { x: number; y: number };
 
+export interface PlayerOptions {
+  lane?: number; // where across the start line to start, instead of the player's own lane
+  controls?: Controls[]; // key sets that steer this car, instead of just the player's own
+}
+
 export class Player {
   x: number;
   y: number;
@@ -30,21 +36,30 @@ export class Player {
   // start/finish line, so crossing it for the first time brings this to 0: the first lap begins.
   sectorsPassed = -1;
   private lastWheels: [Spot, Spot] | null = null; // where the back wheels were, while leaving skid marks
+  readonly controls: Controls[]; // any of these key sets steers the car
 
-  constructor(public config: PlayerConfig) {
-    const spot = startSpot(config.lane);
+  constructor(
+    public config: PlayerConfig,
+    options: PlayerOptions = {},
+  ) {
+    this.controls = options.controls ?? [config.controls];
+    const spot = startSpot(options.lane ?? config.lane);
     this.x = spot.x;
     this.y = spot.y;
     this.angle = spot.angle;
   }
 
+  // Is this key held in any of the car's key sets?
+  private held(key: keyof Controls): boolean {
+    return this.controls.some((c) => isDown(c[key]));
+  }
+
   update(dt: number): void {
-    const c = this.config.controls;
-    const drifting = isDown(c.drift);
+    const drifting = this.held('drift');
     const asphalt = onTrack(this.x, this.y);
 
     // Left and right turn the car; while drifting the nose swings round faster.
-    const steer = (isDown(c.right) ? 1 : 0) - (isDown(c.left) ? 1 : 0);
+    const steer = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0);
     const turnSpeed = drifting ? DRIFT.turnSpeed : TURN_SPEED;
     this.angle += steer * ((turnSpeed * Math.PI) / 180) * dt;
 
@@ -52,7 +67,7 @@ export class Player {
     // What counts for the grass is the spot under the middle of the car.
     let speed = PLAYER_SPEED;
     if (!asphalt) speed *= OFF_TRACK_SPEED;
-    if (isDown(c.brake)) speed *= BRAKE_SPEED;
+    if (this.held('brake')) speed *= BRAKE_SPEED;
 
     if (this.bouncing > 0) {
       // Just hit the tires: slide back and slow down, then drive again.

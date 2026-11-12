@@ -13,11 +13,16 @@ npm run dev        # opens http://localhost:5173
 | Player 1 | A D | S | Space |
 | Player 2 | ← → | ↓ | Enter |
 
-Click 🏁 Start in the middle of the screen. After the countdown (3, 2, 1, LOS!) the cars
-drive off; before that they can't move. `COUNTDOWN` in `config.ts` sets the texts and times.
-The first car to drive 3 laps wins (`RACE.laps`); the lap each player is on shows next to
-their name. A lap only counts if you drove the whole way round, not back and forth over
-the line. Then 🔁 Nochmal starts a new race.
+Click **Start 1 Spieler** or **Start 2 Spieler** in the middle of the screen. After the
+countdown (3, 2, 1, LOS!) the cars drive off; before that they can't move. `COUNTDOWN` in
+`config.ts` sets the texts and times. The lap each player is on shows next to their name.
+A lap only counts if you drove the whole way round, not back and forth over the line.
+After the race the two start buttons come back.
+
+- **2 Spieler:** the first car to drive 3 laps wins (`RACE.laps`).
+- **1 Spieler:** the cat races alone against the clock, steered by either side's keys. The
+  best time is kept in the browser. The track grows with the window, so a bigger window
+  means a longer lap: each window size, number of laps and track shape has its own record.
 
 The cars always drive at the same speed (`PLAYER_SPEED` in `config.ts`); left and right
 turn them. Hold brake to drive at half speed (`BRAKE_SPEED`): half as fast makes the turn
@@ -47,6 +52,7 @@ Out of ideas? See [IDEAS.md](IDEAS.md) for themes, twists and example prompts ([
 - `src/race.ts` – how far the race has got (start button, countdown, racing, finished), counting laps and picking the winner.
 - `src/player.ts` – driving, steering, braking, drifting, bouncing off tires, bumping into each other.
 - `src/skidmarks.ts` – the skid marks drifting cars leave behind.
+- `src/records.ts` – the best one-player time, kept in the browser.
 - `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
 - `src/camera.ts` – the 2D and 3D views, fitted to the window. `project()` turns world positions into screen positions.
 - `src/render.ts` – the cars and the HUD.
