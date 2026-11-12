@@ -126,6 +126,20 @@ export const TRACK = {
   },
 };
 
+// Walls of old tires around the whole track, so nobody can take a shortcut across the grass.
+// They're placed automatically, so they follow the track when you change TRACK.points.
+// Drive into them and you bounce back. They stop hopping cars too.
+export const TIRES = {
+  runoff: 40, // grass between the edge of the track and the middle of the tires, in world units
+  radius: 9, // size of each tire
+  bounce: 0.8, // how fast cars bounce back (0 = they just stop, 1 = as fast as they came)
+  bounceTime: 0.3, // seconds a car slides back before it drives again (you can still steer)
+  colors: {
+    rubber: '#1c1c1c',
+    inside: '#3d3d3d', // the hole in the middle of each tire
+  },
+};
+
 // Floors for the floor picker under the 2D/3D button, in the order it shows them.
 // Floors are only paint; the race track is painted on top of every floor. Sizes are in world units.
 export const FLOORS = {

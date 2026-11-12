@@ -1,10 +1,11 @@
 // The race track, painted on top of whichever floor is picked. Its shape comes from track.ts.
-import { TRACK } from '../config';
+import { TIRES, TRACK } from '../config';
 import { getTrack, trackDirection, type TrackPoint } from '../track';
 import { floorEllipse, floorPolygon } from './shapes';
 
 export function paintTrack(ctx: CanvasRenderingContext2D): void {
-  const { middle, halfWidth } = getTrack();
+  const { middle, halfWidth, tires } = getTrack();
+  paintTires(ctx, tires);
   const colors = TRACK.colors;
 
   paintKerbs(ctx, middle, halfWidth);
@@ -35,6 +36,20 @@ function paintBand(ctx: CanvasRenderingContext2D, middle: TrackPoint[], r: numbe
     const dirB = trackDirection(i + 1);
     floorPolygon(ctx, [offset(a, dirA, 0, -r), offset(b, dirB, 0, -r), offset(b, dirB, 0, r), offset(a, dirA, 0, r)]);
   }
+  ctx.fill();
+}
+
+// Old tires seen from above: black rings. All the rubber goes first, then all the holes,
+// so tires that overlap still show their holes.
+function paintTires(ctx: CanvasRenderingContext2D, tires: TrackPoint[]): void {
+  const r = TIRES.radius;
+  ctx.fillStyle = TIRES.colors.rubber;
+  ctx.beginPath();
+  for (const t of tires) floorEllipse(ctx, t.x, t.y, r, r, 12);
+  ctx.fill();
+  ctx.fillStyle = TIRES.colors.inside;
+  ctx.beginPath();
+  for (const t of tires) floorEllipse(ctx, t.x, t.y, r * 0.5, r * 0.5, 10);
   ctx.fill();
 }
 

@@ -26,6 +26,11 @@ The race track runs through the points in `TRACK.points` in `config.ts`, given a
 fractions of the arena. Move them to build your own track: points close together
 make a tight corner. Off the track the cars drive at `OFF_TRACK_SPEED`.
 
+Walls of old tires (`TIRES` in `config.ts`) run around the whole track, with a strip of
+grass in between. They're placed automatically from the track's shape, also between two
+parts of the track that come close, so there's no shortcut across the grass. Drive into
+them and you bounce back; hopping doesn't get you over them.
+
 Press the key left of `1` (`§` on Swiss keyboards, `` ` `` on US ones) to show which
 keys are held. Use it to check that your keyboard registers both players at once:
 many laptop keyboards drop keys when several are held.
@@ -37,7 +42,7 @@ Out of ideas? See [IDEAS.md](IDEAS.md) for themes, twists and example prompts ([
 - `src/config.ts` – players, emojis, colors, speed, keys, camera views, floors. Start here.
 - `src/race.ts` – how far the race has got: waiting for the start button, countdown, racing.
 - `src/player.ts` – driving and steering, hop, bumping into each other.
-- `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, and whether a spot is on the asphalt.
+- `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
 - `src/camera.ts` – the 2D and 3D views, fitted to the window. `project()` turns world positions into screen positions.
 - `src/render.ts` – the cars and the HUD.
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors.
