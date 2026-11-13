@@ -77,3 +77,14 @@ Known issue: on a 390 px wide phone the two player names in the HUD overlap. It 
 once `touch-controls` lets someone play on a phone. The GitHub icon in the middle of the top
 line (step 14) runs into the lap counters sooner: below about 643 px with two players and
 the default names, earlier with longer names.
+
+## narrow-windows
+
+Known issue, measured in step 15:
+
+- The left column (2D/3D, floor) overlaps the start buttons in windows 790 to 850 px wide,
+  where the two buttons still sit side by side, and in windows up to 460 px wide, where they
+  stack. Everything can still be clicked; the side buttons lie on top. Keeping the start
+  buttons clear of the column (a wider margin) would make them stack sooner.
+- On a 390 px phone the open floor row is 484 px long, so the last two floors (Brick
+  baseplate, Lava) are off the screen.

@@ -9,8 +9,9 @@
       html, body { margin: 0; height: 100%; background: #111; }
       body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
       canvas { display: block; image-rendering: auto; }
+      /* z-index: the open floor row must lie on top of the start buttons, or they swallow its clicks. */
       #side-controls {
-        position: fixed; left: 12px; top: 50%; transform: translateY(-50%);
+        position: fixed; left: 12px; top: 50%; transform: translateY(-50%); z-index: 1;
         display: flex; flex-direction: column; align-items: center; gap: 16px;
         user-select: none;
       }

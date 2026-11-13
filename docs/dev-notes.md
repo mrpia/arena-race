@@ -69,6 +69,13 @@ is in world units.
 - Saved records belong to the browser origin, and that includes the port. If another dev
   server already holds port 5173, Vite moves to 5174 and the saved records seem to be gone.
   The online game keeps its own records too.
+- Every `position: fixed` element with a `transform` (the left column, the start buttons, the
+  GitHub icon) is a layer of its own. A `z-index` on something inside one, like the floor
+  row, can't lift it over another layer; put the `z-index` on the outer element.
+- Stop a background dev server by its process id (`ss -ltnp | grep 5173`), not with
+  `pkill -f vite…`: the pattern also matches the shell running `pkill`, which kills
+  itself before the rest of the command runs. The adult may also have their own
+  `npm run dev` on 5173; leave that one alone.
 - Keyboard ghosting: in two-player mode up to six keys are held at once. The key left of 1
   (§ on Swiss keyboards) shows which keys the game sees.
 - A session can't change its working directory to another folder. Start Claude Code in the

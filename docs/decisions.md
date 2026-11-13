@@ -216,3 +216,22 @@ they helped make.
 - Anyone playing the online game can now reach the repo and open issues.
 - Side effect: below about 643 px window width (two players, default names) the icon
   overlaps the lap counters. Noted under `hud-on-phones` in the backlog.
+
+## 15. Every floor can be picked before the race
+
+**Asked (by the adult):** fix a bug found while testing step 14. With the start buttons on
+screen, the open floor row ran under "Start 1 Spieler", and in a 1280×800 window the button
+caught the clicks meant for five of the ten floors (Frozen lake to Lava). They could only be
+picked during a race.
+
+- The left column (`#side-controls`) now has `z-index: 1`, so it and its floor row lie on
+  top of the start buttons. Giving the row a `z-index` alone wouldn't work: the column's
+  `transform` makes it a layer of its own, and the start buttons, later in the page, cover
+  that whole layer.
+- While the row is open it covers part of "Start 1 Spieler". It closes after a pick or a
+  click anywhere else, as before.
+- Not chosen: wrapping the row into two lines or opening it as a column. Both change how the
+  picker looks, and two lines would still reach the start button at 1280 px.
+- Where the side buttons and the start buttons overlap (narrow windows), the side buttons are
+  now on top; before, the start button hid most of them. The overlap itself is still there:
+  see `narrow-windows` in the backlog.
