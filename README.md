@@ -7,6 +7,8 @@ Play it at https://arena-race.mrpia.ch (you need a keyboard).
 
 It grew out of [arena-starter](https://github.com/mrpia/arena-starter), a starting point for
 two-player browser games on one keyboard (TypeScript, Canvas 2D and Vite, no game framework).
+How it grew from there, step by step, with what the kids chose and why, is in
+[docs/decisions.md](docs/decisions.md).
 
 ```bash
 npm install

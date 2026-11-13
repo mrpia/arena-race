@@ -235,3 +235,16 @@ picked during a race.
 - Where the side buttons and the start buttons overlap (narrow windows), the side buttons are
   now on top; before, the start button hid most of them. The overlap itself is still there:
   see `narrow-windows` in the backlog.
+
+## 16. No changelog: this log is the history
+
+**Asked (by the adult):** should the repo get a `CHANGELOG.md`?
+
+- No. This file already has every change with its reason. A changelog would repeat it and
+  add one more file to update in every step, the kind of overlap step 13 removed.
+- A changelog lists changes by release, and there are none: no git tags, no GitHub releases,
+  `package.json` still at `0.1.0`. When to introduce versions and releases is the adult's
+  call, so there are no deploy tags either for now.
+- Instead the README now links to this file near the top, so visitors who come through the
+  GitHub icon (step 14) find the history.
+- Known gap: nothing records which commit is online. Deploys stay manual (`npm run ship`).
