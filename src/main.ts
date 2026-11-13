@@ -1,4 +1,4 @@
-import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, PLAYERS, RACE, VIEW } from './config';
+import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, setCamera } from './camera';
@@ -94,6 +94,14 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') floorPicker.hidden = true;
 });
 chooseFloor(FLOOR);
+
+// The GitHub icon at the top: the game's code, in a new tab so a race isn't lost.
+const githubLink = document.querySelector<HTMLAnchorElement>('#github')!;
+githubLink.href = GITHUB.url;
+githubLink.title = GITHUB.title;
+githubLink.setAttribute('aria-label', GITHUB.title);
+// Let go of focus, like the buttons, so the keys stay with the game.
+githubLink.addEventListener('click', () => githubLink.blur());
 
 // The two start buttons in the middle: race alone against the clock, or two players.
 // Either one puts the cars at the start line and begins the countdown. They come back after each race.

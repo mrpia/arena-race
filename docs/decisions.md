@@ -191,3 +191,28 @@ game but can't drive.
   traps) is now `dev-notes.md`.
 - `docs/README.md` only listed the other files; `CLAUDE.md` does that now. Dropped.
 - Left in `docs/`: this log, `BACKLOG.md` and `dev-notes.md`.
+
+## 14. A GitHub icon at the top
+
+**Asked (by the adult):** a GitHub icon in the top row that links to the repo, so players
+can report bugs, suggest features, or copy the code. The kids might want to look at the code
+they helped make.
+
+- The top line is the HUD (names, laps, keys); the buttons are a column on the left. Two
+  places were offered: the middle of the top line, or under the floor button. The adult
+  picked the top line. The icon leaves the game, so it stays apart from the buttons that
+  change it.
+- Same white rounded square as the 2D/3D and floor buttons, with the GitHub mark inside. There
+  is no GitHub emoji, so the mark is an inline SVG copied from `@primer/octicons` 19.15.1
+  (`mark-github-16.svg`, MIT).
+- It opens in a new tab, so a race in progress isn't lost. After a click it lets go of
+  focus, like the buttons. Enter, player 2's drift key, can't open it anyway: `input.ts`
+  blocks the key's default action.
+- The URL and the German tooltip ("Der Code des Spiels auf GitHub") are in `GITHUB` in
+  `config.ts`.
+- Reading and downloading the code needs no account. Opening an issue or forking does, and
+  GitHub accounts are for people aged 13 and up (GitHub Terms of Service, "Account Terms"),
+  so the kids' issues go through an adult.
+- Anyone playing the online game can now reach the repo and open issues.
+- Side effect: below about 643 px window width (two players, default names) the icon
+  overlaps the lap counters. Noted under `hud-on-phones` in the backlog.

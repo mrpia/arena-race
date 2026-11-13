@@ -37,6 +37,9 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   (`Emulation.setTouchEmulationEnabled`), then reload: `pointer: coarse` matches after that.
   Emulation left on by one run was still on in the next, so close the browser afterwards.
 - Clear `localStorage` in the test browser after record tests.
+- To test the GitHub link without leaving for github.com, stub it with
+  `page.context().route('https://github.com/**', (r) => r.fulfill({ body: 'stub' }))`, then
+  read the URL of the tab the click opens (`page.waitForEvent('popup')`).
 
 ## Numbers worth knowing
 

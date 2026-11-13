@@ -74,4 +74,6 @@ put back on the start line before the start.
 ## hud-on-phones
 
 Known issue: on a 390 px wide phone the two player names in the HUD overlap. It only matters
-once `touch-controls` lets someone play on a phone.
+once `touch-controls` lets someone play on a phone. The GitHub icon in the middle of the top
+line (step 14) runs into the lap counters sooner: below about 643 px with two players and
+the default names, earlier with longer names.

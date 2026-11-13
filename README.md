@@ -50,6 +50,9 @@ keys are held. Use it to check that your keyboard registers both players at once
 (up to six keys: steer, brake and drift for each): many laptop keyboards drop keys when
 several are held.
 
+The GitHub icon at the top in the middle opens this repo in a new tab: read the code, copy
+it, or open an issue with a bug or an idea (`GITHUB` in `config.ts`).
+
 Out of ideas? Ideas for this game are in [docs/BACKLOG.md](docs/BACKLOG.md). Themes, twists and
 example prompts for two-player games in general are in arena-starter's
 [IDEAS.md](https://github.com/mrpia/arena-starter/blob/master/IDEAS.md)
@@ -67,7 +70,7 @@ example prompts for two-player games in general are in arena-starter's
 - `src/render.ts` – the cars and the HUD.
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
-- `src/main.ts` – canvas setup, the controls on the left and the game loop.
+- `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
 
 Click the 2D/3D button on the left while playing to switch between looking straight
 down (2D) and a tilted camera (3D). `CAMERA` in `config.ts` sets the view the game

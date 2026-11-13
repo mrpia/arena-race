@@ -97,6 +97,13 @@ export const RACE = {
   recordColor: '#ffd43b', // color of the new record text
 };
 
+// The GitHub icon at the top in the middle: opens the game's code in a new tab, to read it,
+// copy it, or suggest an idea. The title shows when the mouse rests on the icon.
+export const GITHUB = {
+  url: 'https://github.com/mrpia/arena-race',
+  title: 'Der Code des Spiels auf GitHub',
+};
+
 // Before the race: a start button, then a countdown. The cars wait at the start line until it's done.
 export const COUNTDOWN = {
   from: 3, // counts 3, 2, 1
