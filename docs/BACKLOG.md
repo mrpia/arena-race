@@ -20,9 +20,18 @@ The time of each lap in two-player mode. One-player mode already has a stopwatch
 
 ## player-names
 
-The kids' own names instead of "Player 1" and "Player 2": the `name` of each entry in `PLAYERS`
-(`config.ts`). It's only a config change, and it also replaces the English word "Player" that
-`i18n` would otherwise have to translate.
+Players type their own names in the game instead of "Player 1" and "Player 2", and the
+browser keeps them in `localStorage`. Widened on 2026-11-13 by the adult (it was a config
+edit before).
+
+- For the kids to decide: where the name fields go (next to the start buttons?) and what
+  shows when a field is empty.
+- `input.ts` blocks Space, Enter and the arrows for the whole page, so it has to skip keys
+  typed into a name field, or names can't have a space and the cursor can't move.
+- Names are kept per browser and origin: the online game and `localhost` keep their own, and
+  a shared computer remembers the last players.
+- A length limit keeps the HUD readable (see `hud-on-phones`).
+- It also replaces the English word "Player" that `i18n` would otherwise translate.
 
 ## i18n
 
