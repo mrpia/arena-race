@@ -109,9 +109,8 @@ can't show 3D would be friendlier.
 
 ## real-gpu-speed
 
-Measured on the adult's computer (AMD Radeon 780M) in step 18: in the driver's seat 57 to 60
-frames per second on every floor except lava, at about 8 (fixed in step 19); on grass 60 in 2D,
-3D and the driver's seat. Not measured: older
+Measured on the adult's computer (AMD Radeon 780M): in the driver's seat 57 to 60 frames per
+second on every floor (step 18; lava since step 19); on grass and lava 60 in 2D and 3D. Not measured: older
 or weaker computers, like school laptops. The debug line (key left of 1) shows frames per
 second. If it's slow, things to try (none measured yet): one tire per stack (`TIRES.stack`), a
 lower `SCENE.floorSharpness`, a smaller shadow map (`sun.shadow.mapSize` in `scene.ts`), and

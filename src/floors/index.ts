@@ -9,7 +9,7 @@ import { paintBricks } from './bricks';
 import { paintChess } from './chess';
 import { paintGrass } from './grass';
 import { paintIce } from './ice';
-import { paintLava } from './lava';
+import { lavaPulse, paintLava, paintLavaGlow } from './lava';
 import { paintTreasureMap } from './map';
 import { paintMoon } from './moon';
 import { paintStreet } from './street';
@@ -27,9 +27,17 @@ export function currentFloor(): FloorName {
 
 type FloorPainter = (ctx: CanvasRenderingContext2D, W: number, H: number) => void;
 
-// wall: the color of the floor's sides. moves: the floor changes over time (like lava's glow), so it
-// is painted again for every frame. That costs speed, so leave it out for floors that stay still.
-const FLOOR_LOOKS: Record<FloorName, { paint: FloorPainter; wall: string; moves?: boolean }> = {
+// wall: the color of the floor's sides.
+// glow (optional): paints what shines by itself, on black. The scene adds it on top of the floor,
+// where shadows can't darken it, and makes it brighter and dimmer with pulse (seconds → 0 to 1)
+// without painting anything again. Painting a floor again for every frame would be far too slow.
+interface FloorLook {
+  paint: FloorPainter;
+  wall: string;
+  glow?: { paint: FloorPainter; pulse: (seconds: number) => number };
+}
+
+const FLOOR_LOOKS: Record<FloorName, FloorLook> = {
   grass: { paint: paintGrass, wall: GRASS.colors.wall },
   street: { paint: paintStreet, wall: STREET.colors.wall },
   wood: { paint: paintWood, wall: WOOD.colors.wall },
@@ -39,15 +47,16 @@ const FLOOR_LOOKS: Record<FloorName, { paint: FloorPainter; wall: string; moves?
   moon: { paint: paintMoon, wall: MOON.colors.wall },
   map: { paint: paintTreasureMap, wall: TREASURE_MAP.colors.wall },
   bricks: { paint: paintBricks, wall: BRICKS.colors.wall },
-  lava: { paint: paintLava, wall: LAVA.colors.wall, moves: true },
+  lava: { paint: paintLava, wall: LAVA.colors.wall, glow: { paint: paintLavaGlow, pulse: lavaPulse } },
 };
 
 export function floorWall(): string {
   return FLOOR_LOOKS[floor].wall;
 }
 
-export function floorMoves(): boolean {
-  return FLOOR_LOOKS[floor].moves === true;
+// How bright the floor's glow is at this moment (see FLOOR_LOOKS).
+export function floorPulse(seconds: number): number {
+  return FLOOR_LOOKS[floor].glow?.pulse(seconds) ?? 1;
 }
 
 // Paint the floor and the track on top of it. The canvas must already be scaled to world units.
@@ -56,4 +65,18 @@ export function paintFloor(ctx: CanvasRenderingContext2D, W: number, H: number):
   FLOOR_LOOKS[floor].paint(ctx, W, H);
   ctx.restore();
   paintTrack(ctx);
+}
+
+// Paint what glows on black, with the track cut out: the track lies on top of the glow.
+// Floors without a glow stay all black. The canvas must already be scaled to world units.
+export function paintFloorGlow(ctx: CanvasRenderingContext2D, W: number, H: number): void {
+  ctx.save();
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  FLOOR_LOOKS[floor].glow?.paint(ctx, W, H);
+  ctx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out'; // whatever the track paints is cut out instead
+  paintTrack(ctx);
+  ctx.restore();
 }

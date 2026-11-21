@@ -1,11 +1,9 @@
 import { LAVA } from '../config';
 import { floorBlob, floorCrack, floorRect, glow, noise } from './shapes';
 
+// The dark rock. The glowing cracks and pools are painted separately, by paintLavaGlow.
 export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): void {
-  const { cracks, pulseSpeed, colors } = LAVA;
-  // Goes slowly between 0.6 and 1 so the lava seems to throb.
-  const pulse = 0.8 + 0.2 * Math.sin((performance.now() / 1000) * pulseSpeed);
-
+  const { colors } = LAVA;
   ctx.fillStyle = colors.rock;
   ctx.beginPath();
   floorRect(ctx, 0, 0, W, H);
@@ -17,6 +15,11 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
     floorBlob(ctx, noise(i, 17) * W, noise(i, 18) * H, 40 + noise(i, 19) * 60, i + 80);
     ctx.fill();
   }
+}
+
+// What glows, at full brightness, on black. The scene adds it on top of the rock and makes it throb.
+export function paintLavaGlow(ctx: CanvasRenderingContext2D, W: number, H: number): void {
+  const { cracks, colors } = LAVA;
 
   // Glowing cracks: a wide orange glow with a thin, hotter middle.
   const traceCracks = () => {
@@ -26,9 +29,8 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
     }
   };
   ctx.lineJoin = 'round';
-  ctx.globalAlpha = pulse;
   ctx.shadowColor = colors.glow;
-  glow(ctx, 14 * pulse);
+  glow(ctx, 14);
   ctx.strokeStyle = colors.glow;
   ctx.lineWidth = 4;
   traceCracks();
@@ -44,7 +46,7 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
     [W * 0.32, H * 0.78, 32],
     [W * 0.68, H * 0.78, 32],
   ];
-  glow(ctx, 24 * pulse);
+  glow(ctx, 24);
   for (const [x, y, r] of pools) {
     ctx.fillStyle = colors.glow;
     ctx.beginPath();
@@ -55,4 +57,9 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
     floorBlob(ctx, x, y, r * 0.6, 7);
     ctx.fill();
   }
+}
+
+// How bright the glow is right now: it goes slowly between 0.6 and 1, so the lava seems to throb.
+export function lavaPulse(seconds: number): number {
+  return 0.8 + 0.2 * Math.sin(seconds * LAVA.pulseSpeed);
 }

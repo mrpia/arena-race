@@ -36,8 +36,10 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   `GALLIUM_DRIVER=d3d12 LD_LIBRARY_PATH=/usr/lib/wsl/lib`. Check `WEBGL_debug_renderer_info`:
   it must name the card ("D3D12 (AMD Radeon(TM) 780M)"); "llvmpipe" means software again, which
   is what you get without `GALLIUM_DRIVER`. Count `requestAnimationFrame` calls over 3 s per view
-  and per floor. Numbers from step 18: in the driver's seat 57 to 60 fps on every floor but lava
-  (7.9, before step 19); on grass 60 in 2D, 3D and the driver's seat.
+  and per floor, after waiting a few seconds (choosing a floor paints its pictures once). Numbers:
+  57 to 60 fps in the driver's seat on every floor (step 18; lava 7.9 until step 19, 59 after);
+  60 in 2D and 3D on grass and lava. The first measurement after starting the browser sometimes
+  comes out around 50, even on grass.
 - To find what a frame spends its time on, take a CPU profile through a CDP session
   (`Profiler.start`, wait, `Profiler.stop`) and add up self time per function. In step 17,
   JavaScript was about 1% and "(program)" the rest: waiting for the software renderer.
@@ -91,6 +93,12 @@ is in world units.
   up to π. `scene.ts` splits π between the sky (ambient) and the sun, by `SCENE.shadowDarkness`.
 - When the floor picture changes size (window resized), the old texture must be `dispose()`d,
   or the graphics card keeps the old size.
+- Painting the floor picture again every frame (lava before step 19) cost about 8 fps on the
+  adult's card: painting 2.5 million pixels with canvas glow, then sending them to the card.
+  Throbbing goes through the glow picture's strength (`emissiveIntensity`) instead.
+- The glow picture is painted on black, not on a see-through canvas: WebGL sends canvas pixels to
+  the card without multiplying the colors by their see-through amount, so a faint halo pixel
+  would arrive at full color. Black around the glow avoids that.
 - During a session another project's dev server took over port 5199 after ours stopped, and a
   profile measured the wrong app. Check the page title before measuring.
 - The start buttons are clicked with the mouse. Space and Enter are game keys: `input.ts`

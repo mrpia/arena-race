@@ -344,3 +344,24 @@ with shadows and 3D cars, and then a behind-car or in-car camera with split scre
 - Not checked: how the swing and the driver's seat feel to the kids, and whether anyone gets
   queasy. `swing`, `behind`, `height`, `lookAhead` and `fov` are the values to play with.
 
+## 19. Lava at full speed again (2026-11-21)
+
+**Asked (by the adult):** the driver's seat ran at 7 fps; drop slow floors if that helps.
+
+- Measured on the adult's graphics card: only lava was slow, at about 8 fps in every view; the
+  other nine floors ran at 57 to 60. Since step 17 lava was painted again every frame (about 2.5
+  million pixels with canvas glow, then sent to the graphics card) so that its glow could throb.
+- Lava stays: it can be fixed without losing it or its throbbing. The rock is painted once into
+  the floor picture as before. The cracks and pools are painted once, at full brightness on
+  black, into a second picture that the scene adds on top as light of its own (three.js'
+  `emissiveMap`). Each frame only that light's strength changes, between 0.6 and 1 at
+  `LAVA.pulseSpeed`, as before.
+- Floors get an optional `glow` painter in `FLOOR_LOOKS` for this; the `moves` flag is gone. The
+  track is cut out of the glow picture, so the glow stays under the track as before.
+- Small differences: the halo round the cracks now gets brighter and dimmer instead of wider and
+  narrower, and car shadows no longer darken the glow.
+- After: lava at 59 to 60 fps in 2D, 3D and the driver's seat on the adult's card. Choosing the
+  lava floor (or resizing the window on it) paints both pictures once.
+- Checked: typecheck; lava in 2D, 3D and the driver's seat looks as before; the glow doesn't
+  shine through the track.
+

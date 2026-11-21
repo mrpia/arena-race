@@ -28,7 +28,7 @@ import { currentCamera, followedCar, ridesAlong, sceneCamera } from './camera';
 import { buildCar, placeCar } from './cars';
 import { ARENA, COLORS, type PlayerConfig, SCENE, SKID_MARKS, TIRES, VIEW } from './config';
 import { cssColor } from './cssColor';
-import { currentFloor, floorMoves, floorWall, paintFloor } from './floors';
+import { currentFloor, floorPulse, floorWall, paintFloor, paintFloorGlow } from './floors';
 import type { Player } from './player';
 import { skidMarks } from './skidmarks';
 import { getTrack, type Track } from './track';
@@ -55,7 +55,14 @@ const floorBrush = floorPicture.getContext('2d')!;
 const floorTexture = new CanvasTexture(floorPicture);
 floorTexture.colorSpace = SRGBColorSpace;
 floorTexture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // stays sharp when seen at a slant
-const floorTop = new Mesh(new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new MeshLambertMaterial({ map: floorTexture }));
+// A second picture with what glows (lava's cracks), added on top and made to throb (see FLOOR_LOOKS).
+const glowPicture = document.createElement('canvas');
+const glowBrush = glowPicture.getContext('2d')!;
+const glowTexture = new CanvasTexture(glowPicture);
+glowTexture.colorSpace = SRGBColorSpace;
+glowTexture.anisotropy = floorTexture.anisotropy;
+const floorPaint = new MeshLambertMaterial({ map: floorTexture, emissive: 0xffffff, emissiveMap: glowTexture });
+const floorTop = new Mesh(new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), floorPaint);
 floorTop.receiveShadow = true;
 const sidePaint = new MeshBasicMaterial(); // the floor's color in FLOOR_LOOKS, untouched by light
 const floorSides = new Mesh(new BoxGeometry(1, 1, 1), sidePaint);
@@ -101,9 +108,10 @@ function build(track: Track): void {
   floorSides.position.set(W / 2, -T / 2 - 0.5, H / 2); // just under the floor picture
 
   const sharpness = Math.min(SCENE.floorSharpness, renderer.capabilities.maxTextureSize / Math.max(W, H));
-  floorPicture.width = Math.round(W * sharpness);
-  floorPicture.height = Math.round(H * sharpness);
-  floorTexture.dispose(); // the picture changed size, so the graphics card needs a new one
+  glowPicture.width = floorPicture.width = Math.round(W * sharpness);
+  glowPicture.height = floorPicture.height = Math.round(H * sharpness);
+  floorTexture.dispose(); // the pictures changed size, so the graphics card needs new ones
+  glowTexture.dispose();
   paintedFloor = '';
 
   if (tires) {
@@ -141,12 +149,17 @@ function build(track: Track): void {
   builtFor = track;
 }
 
-function paintFloorPicture(): void {
-  floorBrush.setTransform(1, 0, 0, 1, 0, 0);
-  floorBrush.clearRect(0, 0, floorPicture.width, floorPicture.height);
-  floorBrush.setTransform(floorPicture.width / ARENA.width, 0, 0, floorPicture.height / ARENA.height, 0, 0);
+// Paint the floor picture and the glow picture, in world units. Only when the floor or the arena changes.
+function paintFloorPictures(): void {
+  for (const brush of [floorBrush, glowBrush]) {
+    brush.setTransform(1, 0, 0, 1, 0, 0);
+    brush.clearRect(0, 0, brush.canvas.width, brush.canvas.height);
+    brush.setTransform(brush.canvas.width / ARENA.width, 0, 0, brush.canvas.height / ARENA.height, 0, 0);
+  }
   paintFloor(floorBrush, ARENA.width, ARENA.height);
+  paintFloorGlow(glowBrush, ARENA.width, ARENA.height);
   floorTexture.needsUpdate = true;
+  glowTexture.needsUpdate = true;
   sidePaint.color.set(floorWall());
 }
 
@@ -181,10 +194,11 @@ export function renderScene(players: readonly Player[]): void {
   const track = getTrack();
   if (track !== builtFor) build(track);
   const floor = currentFloor();
-  if (floor !== paintedFloor || floorMoves()) {
-    paintFloorPicture();
+  if (floor !== paintedFloor) {
+    paintFloorPictures();
     paintedFloor = floor;
   }
+  floorPaint.emissiveIntensity = floorPulse(performance.now() / 1000);
   updateSkidMarks();
 
   // Riding along with a car, there's sky behind the arena; looking at the whole arena, the page's color.

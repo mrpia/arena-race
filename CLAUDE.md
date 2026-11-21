@@ -40,8 +40,9 @@ with kids, who decide what the game should do. Keep it fun to change.
   hard-code a view; take view-specific values from `currentCamera()`.
 - Each floor has its own painter file in `src/floors/`, listed in `FLOORS` (`config.ts`) and
   `FLOOR_LOOKS` (`floors/index.ts`). Painters draw in world units into a picture that `scene.ts`
-  lays on the floor. Shapes shared by floors live in `floors/shapes.ts`; use its `glow()` rather
-  than `shadowBlur`. A floor that changes over time needs `moves: true` and costs speed.
+  lays on the floor, once. Shapes shared by floors live in `floors/shapes.ts`; use its `glow()`
+  rather than `shadowBlur`. Parts that throb go in a separate `glow` painter (see lava): never
+  paint a floor again every frame, it dropped the game to 8 fps (step 19).
 - The race track lies on top of every floor: `TRACK` in `config.ts`, turned into a loop in world
   units by `track.ts` and painted by `floors/track.ts` (not a floor, so not in `FLOORS`).
 - Keys are `KeyboardEvent.code` values. Keep the two players' controls apart
