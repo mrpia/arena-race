@@ -11,7 +11,11 @@
     "ship": "npm run build && firebase deploy --only hosting"
   },
   "devDependencies": {
+    "@types/three": "0.187.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "three": "0.187.0"
   }
 }

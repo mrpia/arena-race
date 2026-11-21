@@ -7,7 +7,8 @@ Play it at https://arena-race.mrpia.ch (you need a keyboard).
 
 It grew out of [arena-starter](https://github.com/mrpia/arena-starter), a starting point for
 two-player browser games on one keyboard (TypeScript, Canvas 2D and Vite, no game framework).
-How it grew from there, step by step, with what the kids chose and why, is in
+Since step 17 the game is drawn in 3D with [three.js](https://threejs.org), its only runtime
+dependency. How it grew from there, step by step, with what the kids chose and why, is in
 [docs/decisions.md](docs/decisions.md).
 
 ```bash
@@ -50,7 +51,8 @@ them and you bounce back.
 Press the key left of `1` (`§` on Swiss keyboards, `` ` `` on US ones) to show which
 keys are held. Use it to check that your keyboard registers both players at once
 (up to six keys: steer, brake and drift for each): many laptop keyboards drop keys when
-several are held.
+several are held. The same line shows how many frames per second the computer draws
+(`fps`); 60 means it keeps up with a normal screen.
 
 The GitHub icon at the top in the middle opens this repo in a new tab: read the code, copy
 it, or open an issue with a bug or an idea (`GITHUB` in `config.ts`).
@@ -68,15 +70,20 @@ example prompts for two-player games in general are in arena-starter's
 - `src/skidmarks.ts` – the skid marks drifting cars leave behind.
 - `src/records.ts` – the best one-player time, kept in the browser.
 - `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
-- `src/camera.ts` – the 2D and 3D views, fitted to the window. `project()` turns world positions into screen positions.
-- `src/render.ts` – the cars and the HUD.
-- `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors.
+- `src/scene.ts` – the 3D scene: the floor, the tire walls, the skid marks, the sun and its shadows.
+- `src/cars.ts` – what a car looks like in 3D, with the player's emoji as the driver.
+- `src/camera.ts` – the 2D and 3D cameras, aimed and zoomed so the floor fits the window.
+- `src/hud.ts` – names, laps, keys, stopwatch, countdown and results, drawn flat on top of the scene.
+- `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
+- `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
 - `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
 
 Click the 2D/3D button on the left while playing to switch between looking straight
 down (2D) and a tilted camera (3D). `CAMERA` in `config.ts` sets the view the game
-starts in, and `CAMERAS` how each view looks.
+starts in, and `CAMERAS` how each view looks: how far the camera is tilted and how
+strong the perspective is. `SCENE` sets where the sun shines from, how dark the
+shadows are and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are.
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.

@@ -1,86 +1,9 @@
-import { ARENA, CAR, COLORS, type Controls, COUNTDOWN, RACE, SKID_MARKS, VIEW } from './config';
-import { project, toPixels } from './camera';
-import { drawFloor } from './floors';
+// Everything drawn flat on top of the 3D scene: names, laps, keys, stopwatch, countdown and results.
+// It has its own see-through canvas over the scene's canvas, and works in screen pixels.
+import { COLORS, type Controls, COUNTDOWN, RACE, VIEW } from './config';
 import type { Player } from './player';
 import { countdownSign, lapsDone, raceTime, raceWinners, soloResult } from './race';
 import { bestTime } from './records';
-import { skidMarks } from './skidmarks';
-
-// A point on the car: `forward` toward its nose, `side` toward its right, in world units from its middle.
-type CarPoint = [forward: number, side: number];
-
-// The corners of a rectangle on the car, centered at (forward, side).
-function box(forward: number, side: number, length: number, width: number): CarPoint[] {
-  const f = length / 2;
-  const s = width / 2;
-  return [
-    [forward + f, side - s],
-    [forward + f, side + s],
-    [forward - f, side + s],
-    [forward - f, side - s],
-  ];
-}
-
-// Add a shape that turns with the car to the current path.
-function carPath(ctx: CanvasRenderingContext2D, p: Player, points: CarPoint[]): void {
-  const cos = Math.cos(p.angle);
-  const sin = Math.sin(p.angle);
-  points.forEach(([f, s], i) => {
-    const q = project(p.x + cos * f - sin * s, p.y + sin * f + cos * s);
-    if (i === 0) ctx.moveTo(q.sx, q.sy);
-    else ctx.lineTo(q.sx, q.sy);
-  });
-  ctx.closePath();
-}
-
-// A race car seen from above, in the player's color, with the player's emoji as the driver.
-function drawCar(ctx: CanvasRenderingContext2D, p: Player): void {
-  const L = CAR.length / 2;
-  const W = CAR.width / 2;
-  // Square at the back, pointy at the front, so you can see which way the car is going.
-  const body: CarPoint[] = [
-    [-L, -W],
-    [L - 10, -W],
-    [L, -W * 0.5],
-    [L, W * 0.5],
-    [L - 10, W],
-    [-L, W],
-  ];
-
-  // Four wheels, poking out a little at the sides.
-  ctx.fillStyle = CAR.colors.wheels;
-  ctx.beginPath();
-  for (const f of [-L * CAR.axles.back, L * CAR.axles.front]) {
-    for (const s of [-W, W]) carPath(ctx, p, box(f, s, 14, 8));
-  }
-  ctx.fill();
-
-  ctx.fillStyle = p.config.color;
-  ctx.beginPath();
-  carPath(ctx, p, body);
-  ctx.fill();
-
-  ctx.fillStyle = CAR.colors.stripe;
-  ctx.beginPath();
-  carPath(ctx, p, box(0, 0, CAR.length - 4, 6));
-  ctx.fill();
-
-  ctx.fillStyle = CAR.colors.windshield;
-  ctx.beginPath();
-  carPath(ctx, p, box(L * 0.4, 0, 8, CAR.width - 8));
-  ctx.fill();
-
-  // The driver sits a bit behind the middle, behind the windshield.
-  const seatX = p.x - Math.cos(p.angle) * L * 0.2;
-  const seatY = p.y - Math.sin(p.angle) * L * 0.2;
-  const seat = project(seatX, seatY);
-  const size = toPixels(CAR.width * 0.85, seatY);
-  ctx.font = `${Math.round(size)}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#000'; // opaque, or the emoji inherits the windshield's transparency
-  ctx.fillText(p.config.emoji, seat.sx, seat.sy);
-}
 
 function keyLabel(code: string): string {
   return code.replace(/^Key/, '').replace(/^Arrow/, '');
@@ -105,7 +28,13 @@ function lapLabel(p: Player): string {
   return done >= RACE.laps ? RACE.finishedText : `${RACE.lapText} ${done + 1}/${RACE.laps}`;
 }
 
-function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
+// The debug line at the bottom (the key left of 1 turns it on): keys held, and frames drawn per second.
+export interface DebugInfo {
+  keys: string[];
+  fps: number;
+}
+
+function drawHud(ctx: CanvasRenderingContext2D, players: Player[], debug: DebugInfo | null): void {
   ctx.textBaseline = 'top';
   const solo = players.length === 1;
 
@@ -143,11 +72,11 @@ function drawHud(ctx: CanvasRenderingContext2D, players: Player[], showKeys: str
 
   if (solo) drawStopwatch(ctx);
 
-  if (showKeys) {
+  if (debug) {
     ctx.textAlign = 'center';
     ctx.font = '14px monospace';
     ctx.fillStyle = '#ffd43b';
-    ctx.fillText(`held (${showKeys.length}): ${showKeys.join(' ')}`, VIEW.width / 2, VIEW.height - 28);
+    ctx.fillText(`held (${debug.keys.length}): ${debug.keys.join(' ')}   ${debug.fps} fps`, VIEW.width / 2, VIEW.height - 28);
   }
 }
 
@@ -220,38 +149,9 @@ function drawResult(ctx: CanvasRenderingContext2D, players: Player[], winners: P
   drawBigText(ctx, text, one ? one.color : COLORS.text, middle - 90, 72);
 }
 
-// Skid marks on the floor. Older ones are fainter; they're drawn in a few batches, one per shade.
-function drawSkidMarks(ctx: CanvasRenderingContext2D): void {
-  const marks = skidMarks();
-  if (marks.length === 0) return;
-  const shades = 4;
-  ctx.save();
-  ctx.strokeStyle = SKID_MARKS.color;
-  ctx.lineCap = 'round';
-  ctx.lineWidth = toPixels(SKID_MARKS.width, ARENA.height / 2);
-  for (let shade = 0; shade < shades; shade++) {
-    ctx.globalAlpha = 1 - shade / shades;
-    ctx.beginPath();
-    for (const m of marks) {
-      if (Math.min(shades - 1, Math.floor((m.age / SKID_MARKS.fadeTime) * shades)) !== shade) continue;
-      const a = project(m.x1, m.y1);
-      const b = project(m.x2, m.y2);
-      ctx.moveTo(a.sx, a.sy);
-      ctx.lineTo(b.sx, b.sy);
-    }
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-export function render(ctx: CanvasRenderingContext2D, players: Player[], showKeys: string[] | null): void {
-  ctx.fillStyle = COLORS.background;
-  ctx.fillRect(0, 0, VIEW.width, VIEW.height);
-  drawFloor(ctx);
-  drawSkidMarks(ctx);
-  // Draw far players first so near ones overlap them.
-  [...players].sort((a, b) => a.y - b.y).forEach((p) => drawCar(ctx, p));
-  drawHud(ctx, players, showKeys);
+export function renderHud(ctx: CanvasRenderingContext2D, players: Player[], debug: DebugInfo | null): void {
+  ctx.clearRect(0, 0, VIEW.width, VIEW.height);
+  drawHud(ctx, players, debug);
   const sign = countdownSign();
   if (sign) drawCountdown(ctx, sign);
   const winners = raceWinners();

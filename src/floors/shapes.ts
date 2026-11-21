@@ -1,25 +1,16 @@
-// Shapes lying flat on the floor, shared by the floor painters. Positions and sizes are in world units.
-import { project } from '../camera';
+// Shapes lying flat on the floor, shared by the floor painters. Positions and sizes are in world units:
+// the floor picture is scaled so that one world unit is SCENE.floorSharpness pixels.
 
 // Add a rectangle lying flat on the floor to the current path.
 export function floorRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
-  const a = project(x, y);
-  const b = project(x + w, y);
-  const c = project(x + w, y + h);
-  const d = project(x, y + h);
-  ctx.moveTo(a.sx, a.sy);
-  ctx.lineTo(b.sx, b.sy);
-  ctx.lineTo(c.sx, c.sy);
-  ctx.lineTo(d.sx, d.sy);
-  ctx.closePath();
+  ctx.rect(x, y, w, h);
 }
 
 // Add a flat shape with any corners to the current path.
 export function floorPolygon(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]): void {
-  points.forEach((point, i) => {
-    const p = project(point.x, point.y);
-    if (i === 0) ctx.moveTo(p.sx, p.sy);
-    else ctx.lineTo(p.sx, p.sy);
+  points.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
   });
   ctx.closePath();
 }
@@ -28,19 +19,18 @@ export function floorPolygon(ctx: CanvasRenderingContext2D, points: { x: number;
 export function floorEllipse(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, steps = 24): void {
   for (let i = 0; i < steps; i++) {
     const angle = (i / steps) * Math.PI * 2;
-    const p = project(x + Math.cos(angle) * rx, y + Math.sin(angle) * ry);
-    if (i === 0) ctx.moveTo(p.sx, p.sy);
-    else ctx.lineTo(p.sx, p.sy);
+    const px = x + Math.cos(angle) * rx;
+    const py = y + Math.sin(angle) * ry;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.closePath();
 }
 
 // Add a straight line on the floor to the current path.
 export function floorLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number): void {
-  const a = project(x1, y1);
-  const b = project(x2, y2);
-  ctx.moveTo(a.sx, a.sy);
-  ctx.lineTo(b.sx, b.sy);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
 }
 
 // The same "random" number between 0 and 1 for the same inputs, so patterns don't flicker.
@@ -60,9 +50,10 @@ export function floorBlob(ctx: CanvasRenderingContext2D, x: number, y: number, r
   for (let i = 0; i < steps; i++) {
     const angle = (i / steps) * Math.PI * 2;
     const wobbly = r * (0.8 + 0.4 * noise(seed, i));
-    const p = project(x + Math.cos(angle) * wobbly, y + Math.sin(angle) * wobbly);
-    if (i === 0) ctx.moveTo(p.sx, p.sy);
-    else ctx.lineTo(p.sx, p.sy);
+    const px = x + Math.cos(angle) * wobbly;
+    const py = y + Math.sin(angle) * wobbly;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.closePath();
 }
@@ -70,18 +61,22 @@ export function floorBlob(ctx: CanvasRenderingContext2D, x: number, y: number, r
 // Add a jagged crack to the current path. It wanders off in direction `angle` and sometimes branches.
 export function floorCrack(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, length: number, seed: number): void {
   const step = 12;
-  let p = project(x, y);
-  ctx.moveTo(p.sx, p.sy);
+  ctx.moveTo(x, y);
   for (let i = 0; i * step < length; i++) {
     angle += (noise(seed, i) - 0.5) * 1.2;
     x += Math.cos(angle) * step;
     y += Math.sin(angle) * step;
-    p = project(x, y);
-    ctx.lineTo(p.sx, p.sy);
+    ctx.lineTo(x, y);
     if (length * 0.3 >= step && noise(seed, i + 500) < 0.15) {
       const side = noise(seed, i + 900) < 0.5 ? -1 : 1;
       floorCrack(ctx, x, y, angle + side * 0.9, length * 0.3, seed * 7 + i);
-      ctx.moveTo(p.sx, p.sy);
+      ctx.moveTo(x, y);
     }
   }
+}
+
+// Make what's drawn next glow, `size` world units wide (0 = no glow). The canvas measures its glow
+// in pixels whatever the scale, so this converts it.
+export function glow(ctx: CanvasRenderingContext2D, size: number): void {
+  ctx.shadowBlur = size * ctx.getTransform().a;
 }

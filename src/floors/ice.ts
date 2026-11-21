@@ -1,5 +1,4 @@
 import { ICE } from '../config';
-import { project } from '../camera';
 import { floorBlob, floorCrack, floorRect, noise } from './shapes';
 
 export function paintIce(ctx: CanvasRenderingContext2D, W: number, H: number): void {
@@ -27,9 +26,10 @@ export function paintIce(ctx: CanvasRenderingContext2D, W: number, H: number): v
     const start = noise(i, 7) * Math.PI * 2;
     for (let j = 0; j <= 10; j++) {
       const a = start + (j / 10) * 0.7;
-      const p = project(x + r * (Math.cos(a) - Math.cos(start)), y + r * (Math.sin(a) - Math.sin(start)));
-      if (j === 0) ctx.moveTo(p.sx, p.sy);
-      else ctx.lineTo(p.sx, p.sy);
+      const px = x + r * (Math.cos(a) - Math.cos(start));
+      const py = y + r * (Math.sin(a) - Math.sin(start));
+      if (j === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     }
   }
   ctx.stroke();

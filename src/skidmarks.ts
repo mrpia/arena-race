@@ -1,5 +1,5 @@
 // Black marks left on the asphalt by drifting cars. Each one is a short line in world units
-// that fades away as it gets older. render.ts draws them.
+// that fades away as it gets older. scene.ts draws them.
 import { SKID_MARKS } from './config';
 
 export interface SkidMark {

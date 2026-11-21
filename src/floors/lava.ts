@@ -1,5 +1,5 @@
 import { LAVA } from '../config';
-import { floorBlob, floorCrack, floorRect, noise } from './shapes';
+import { floorBlob, floorCrack, floorRect, glow, noise } from './shapes';
 
 export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): void {
   const { cracks, pulseSpeed, colors } = LAVA;
@@ -28,7 +28,7 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
   ctx.lineJoin = 'round';
   ctx.globalAlpha = pulse;
   ctx.shadowColor = colors.glow;
-  ctx.shadowBlur = 14 * pulse;
+  glow(ctx, 14 * pulse);
   ctx.strokeStyle = colors.glow;
   ctx.lineWidth = 4;
   traceCracks();
@@ -44,7 +44,7 @@ export function paintLava(ctx: CanvasRenderingContext2D, W: number, H: number): 
     [W * 0.32, H * 0.78, 32],
     [W * 0.68, H * 0.78, 32],
   ];
-  ctx.shadowBlur = 24 * pulse;
+  glow(ctx, 24 * pulse);
   for (const [x, y, r] of pools) {
     ctx.fillStyle = colors.glow;
     ctx.beginPath();

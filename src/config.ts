@@ -26,19 +26,31 @@ export const VIEW = { width: 960, height: 600 };
 export const ARENA = { width: 800, height: 450 };
 // The arena never gets smaller than this; in tiny windows the view zooms out instead.
 export const ARENA_MIN = { width: 500, height: 300 };
-// Zoom: screen pixels per world unit at the near edge. Bigger = bigger players, smaller arena.
+// Zoom: screen pixels per world unit. The arena is as many world units wide as fit in the window
+// at this zoom. Bigger = bigger players, smaller arena.
 export const PIXELS_PER_UNIT = 1.2;
 
 // The two camera views. The 2D/3D button on the left switches between them while playing.
-// perspective: 0 = straight top-down. 0.3 = far edge is 30% narrower, like a tilted camera.
-// depthSquash: how much the floor is squashed vertically (1 = not at all).
-// wall: height in pixels of the wall along the front edge of the floor (0 = no wall).
+// Both look at the middle of the floor from the near (bottom) side and zoom so the floor fits the window.
+// tilt: 0 = looking straight down, 90 = looking along the floor from its near edge.
+// fov: how wide the camera sees, in degrees. Wider = stronger perspective (the far edge looks smaller).
+// 0 = no perspective at all: far things look as big as near ones.
 export const CAMERAS = {
-  '2d': { name: '2D', perspective: 0, depthSquash: 1, wall: 0 },
-  '3d': { name: '3D', perspective: 0.3, depthSquash: 0.8, wall: 24 },
+  '2d': { name: '2D', tilt: 0, fov: 0 },
+  '3d': { name: '3D', tilt: 30, fov: 40 },
 };
 export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
+
+// The 3D scene: the sun, its shadows, and the floor everything stands on.
+export const SCENE = {
+  sunFrom: 225, // where the sun shines from, in degrees: 0 = right, 90 = near edge, 180 = left, 270 = far edge
+  sunHeight: 40, // degrees above the floor: 90 = straight overhead (short shadows), lower = longer shadows
+  shadowDarkness: 0.5, // 0 = no shadows, 1 = black shadows. Sides facing away from the sun get this dark too.
+  shadowSoftness: 2, // how blurry the edges of shadows are (0 = sharp)
+  floorThickness: 40, // the floor is a slab this thick; its front side shows in the 3D view
+  floorSharpness: 2, // pixels of floor picture per world unit: higher = sharper, but takes more memory (and time, on lava)
+};
 
 export const PLAYER_RADIUS = 24; // how close two cars get before they bump
 export const PLAYER_SPEED = 260; // world units per second. There's no gas pedal: cars always drive this fast.
@@ -67,6 +79,10 @@ export const SKID_MARKS = {
 export const CAR = {
   length: 60,
   width: 32,
+  height: 8, // thickness of the body
+  rideHeight: 4, // gap between the floor and the bottom of the body
+  wheel: { radius: 7, width: 8 },
+  driverSize: 0.85, // the driver emoji, compared to the car's width
   // Where the wheels sit, measured from the middle as a share of half the car's length.
   axles: { front: 0.55, back: 0.6 },
   colors: {
@@ -171,11 +187,12 @@ export const TRACK = {
 export const TIRES = {
   runoff: 40, // grass between the edge of the track and the middle of the tires, in world units
   radius: 9, // size of each tire
+  stack: 2, // tires piled on top of each other
   bounce: 0.8, // how fast cars bounce back (0 = they just stop, 1 = as fast as they came)
   bounceTime: 0.3, // seconds a car slides back before it drives again (you can still steer)
   colors: {
     rubber: '#1c1c1c',
-    inside: '#3d3d3d', // the hole in the middle of each tire
+    inside: '#3d3d3d', // the floor under each tire, seen through the hole in the middle
   },
 };
 

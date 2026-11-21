@@ -1,8 +1,9 @@
 # Decision log
 
-What the kids asked for, what was chosen and why, oldest first. Everything here happened on
-2026-11-12. Steps 1 to 7 were built on the `team-orange` branch of `mrpia/arena-starter`,
-which then became this repo (step 8).
+What the kids asked for, what was chosen and why, oldest first. Steps 1 to 13 happened on
+2026-11-12 and steps 14 to 16 on 2026-11-13; later steps give their date. Steps 1 to 7 were
+built on the `team-orange` branch of `mrpia/arena-starter`, which then became this repo
+(step 8).
 
 ## 1. A top-down car race (commit `12c864a`, together with step 2)
 
@@ -248,3 +249,58 @@ picked during a race.
 - Instead the README now links to this file near the top, so visitors who come through the
   GitHub icon (step 14) find the history.
 - Known gap: nothing records which commit is online. Deploys stay manual (`npm run ship`).
+
+## 17. Real 3D with three.js, part 1 of 3 (2026-11-21)
+
+**Asked (by the adult; the kids weren't there):** proper 3D rendering, so the game looks better
+with shadows and 3D cars, and then a behind-car or in-car camera with split screen.
+
+- Three ways were discussed: fake 3D in the canvas (shadows and box-shaped cars, no new
+  dependency, no camera behind the car), a throwaway prototype of the chase camera first, or
+  moving to three.js in steps. The adult picked the steps: (1) the same game and views drawn in
+  3D with shadows, (2) a chase or in-car camera for one player, (3) split screen. This is part 1;
+  the other two are `chase-camera` and `split-screen` in the backlog.
+- three.js 0.187.0 is the game's first runtime dependency. Until now `CLAUDE.md` said "no other
+  runtime dependencies"; the adult agreed to change that. The built game grew from about 12 kB to
+  157 kB gzipped (Vite's count). A bare three.js scene measured beforehand was 123 kB.
+- Said before building, still open for part 2: the track was designed to be read from above
+  (hairpin and chicane radius about 45 units, the car 60 long), so from behind the car you see a
+  corner only once you're in it. The emoji drivers are flat pictures. Split screen hides the
+  other car.
+- Floors and track: the painters now draw in world units onto a picture that lies on top of a
+  slab, instead of every point going through `project()`, which is gone. Lava's glow pulses, so
+  lava is painted again for every frame (`moves` in `FLOOR_LOOKS`). Canvas glow (`shadowBlur`)
+  ignores scaling, so painters use `glow()` from `floors/shapes.ts`.
+- Tires are real rubber rings, stacked two high (`TIRES.stack`), that cast shadows. The floor
+  under each one is painted dark (`TIRES.colors.inside`), which shows through the hole.
+- Cars: a body with the old outline (square back, pointy front), round wheels, the stripe and
+  a windshield. Heights are in `CAR`. The emoji driver is a picture that always faces the
+  camera, so it looks as before from above and sits upright in the tilted view.
+- Sun and shadows: `SCENE` in `config.ts`. In full sun the floor shows exactly its painted
+  colors; in a shadow, and on sides facing away from the sun, it is `shadowDarkness` darker.
+  Default: sun from the top left, 40° high, shadows 50% dark. At 55° the shadows hid under the
+  cars and could hardly be seen.
+- Cameras: `CAMERAS` now has a tilt and a field of view (`fov`). 2D looks straight down with no
+  perspective. 3D is tilted 30° with a 40° view: the far edge is 74% as wide as the near edge
+  (70% before), close to the old look. Each camera zooms so the floor and its front side just
+  fit between the HUD and the bottom of the window. The slab is 40 units thick so its front
+  still shows at that tilt.
+- The arena is sized from the window exactly as before (1280×800 still gives 966×652), so saved
+  records still count. `ARENA_SQUASH` in `camera.ts` keeps the old 3D view's number for that.
+- Skid marks fade smoothly instead of in four steps. They're thin strips just above the floor.
+- The HUD has its own see-through canvas on top of the scene. `render.ts` became `hud.ts`.
+- The debug line (key left of 1) also shows frames per second, so speed can be checked on a
+  real computer.
+- Tires use 6 × 14 segments (168 triangles each) instead of 8 × 20 (320): at about 18 pixels
+  wide they still look round, with half the triangles. In the test browser that only raised the
+  speed from 5.0 to 5.7 frames per second.
+- Checked: typecheck; both views at 1280×800 and 1024×600; grass, lava and arcade; two players
+  driving and drifting (skid marks, cars facing the way they drive); a one-player race to the
+  result screen; a resize before the start.
+- Not checked: speed on a real graphics card. The test browser draws WebGL in software
+  (SwiftShader): there the new version ran at about 5 frames per second and the old one at 56.
+  A profile showed JavaScript at about 1% of each frame, the rest waiting for the software
+  renderer, and an empty WebGL page ran at 57. So the number says little about real computers,
+  but it is unmeasured.
+- No fallback for browsers without WebGL 2 (three.js needs it): the game doesn't start. See
+  `no-webgl` in the backlog.

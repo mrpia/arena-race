@@ -24,7 +24,15 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   `player.update(1 / 60)` in a loop inside `page.evaluate`. Give the test car its own keys
   (for example KeyH, KeyL, KeyK, KeyJ) and don't start a race, so the game's own cars stay put.
 - To measure steering without grass or walls, set `halfWidth = 1e4` and `tires.length = 0` on
-  the cached object from `getTrack()`, then reload the page afterwards.
+  the cached object from `getTrack()`, then reload the page afterwards. The 3D tires stay
+  visible (the scene only rebuilds when the arena changes size); only the bouncing is gone.
+- The test browser has no graphics card: WebGL runs in software (SwiftShader, check with
+  `WEBGL_debug_renderer_info`). The game draws about 5 frames per second there, the old canvas
+  version 56, an empty WebGL page 57. Physics runs in fixed steps, so driving tests still work,
+  just slowly. Don't judge speed from it; use the fps on the debug line in a normal browser.
+- To find what a frame spends its time on, take a CPU profile through a CDP session
+  (`Profiler.start`, wait, `Profiler.stop`) and add up self time per function. In step 17,
+  JavaScript was about 1% and "(program)" the rest: waiting for the software renderer.
 - Leak test for the tire walls: on a 4-unit grid, mark every spot a car's middle can reach
   (inside the arena, at least car radius plus tire radius from every tire). Cut the track at
   16 places with short lines across it. For every pair of cuts, flood-fill from between them.
@@ -57,12 +65,26 @@ is in world units.
 - Speed on grass: 117, on asphalt 260.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
-- The built game is about 12 kB gzipped: `index.html` and one JS file.
+- The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:
+  `index.html` and one JS file. Before three.js (step 17) it was about 12 kB.
+- The 3D scene at 1280×800: 348 tires, 696 rings stacked two high, about 118,000 triangles and
+  21 draw calls per frame, plus the same again for the shadows.
 
 ## Traps we hit
 
-- Floor painters may leave glow or transparency switched on. `drawFloor()` wraps each painter
+- Floor painters may leave glow or transparency switched on. `paintFloor()` wraps each painter
   in its own `save()`/`restore()`; keep it that way.
+- Canvas `shadowBlur` is measured in pixels and ignores `scale()`/`setTransform()`, so on the
+  floor picture (2 pixels per world unit) a glow came out half as wide. `glow()` in
+  `floors/shapes.ts` converts it.
+- three.js 0.187 removed `PCFSoftShadowMap`; asking for it logs a warning and falls back to
+  `PCFShadowMap`. Soft edges come from `shadow.radius` (`SCENE.shadowSoftness`).
+- three.js light is physical: a surface facing the light shows its own color when the light adds
+  up to π. `scene.ts` splits π between the sky (ambient) and the sun, by `SCENE.shadowDarkness`.
+- When the floor picture changes size (window resized), the old texture must be `dispose()`d,
+  or the graphics card keeps the old size.
+- During a session another project's dev server took over port 5199 after ours stopped, and a
+  profile measured the wrong app. Check the page title before measuring.
 - The start buttons are clicked with the mouse. Space and Enter are game keys: `input.ts`
   swallows them, and a button that kept focus would be clicked again by them, so it lets go
   of focus after the click.

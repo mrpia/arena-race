@@ -27,15 +27,20 @@ with kids, who decide what the game should do. Keep it fun to change.
 
 ## Code
 
-- Plain TypeScript + Canvas 2D + Vite. No game framework, no other runtime dependencies.
+- TypeScript + three.js (the 3D scene) + Canvas 2D (the HUD, the floor pictures) + Vite. No game
+  framework. three.js is the only runtime dependency (step 17); ask before adding another.
 - Tunable values (speeds, sizes, colors, emojis, keys) go in `src/config.ts`.
-- Graphics are emojis or simple canvas shapes unless asked otherwise.
-- Game logic works in world units (`ARENA`). Only `camera.ts` (world → screen), `render.ts`
-  (players, HUD) and `floors/` know about the screen. Use `project()` for anything drawn on the floor.
+- Graphics are emojis, simple canvas shapes or simple 3D shapes (boxes, cylinders, rings) unless
+  asked otherwise.
+- Game logic works in world units (`ARENA`). Only `camera.ts` (the cameras), `scene.ts` and
+  `cars.ts` (the 3D scene) and `hud.ts` (text on top) know about the screen or three.js. In the
+  scene, a spot (x, y) on the floor is (x, 0, y) and height is the scene's y axis.
 - Everything must look right in both camera views (`CAMERAS` in `config.ts`, switched by the 2D/3D
-  button). Don't hard-code a tilted look; take view-specific values from `currentCamera()`.
+  button). Don't hard-code a view; take view-specific values from `currentCamera()`.
 - Each floor has its own painter file in `src/floors/`, listed in `FLOORS` (`config.ts`) and
-  `FLOOR_LOOKS` (`floors/index.ts`). Shapes shared by floors live in `floors/shapes.ts`.
+  `FLOOR_LOOKS` (`floors/index.ts`). Painters draw in world units into a picture that `scene.ts`
+  lays on the floor. Shapes shared by floors live in `floors/shapes.ts`; use its `glow()` rather
+  than `shadowBlur`. A floor that changes over time needs `moves: true` and costs speed.
 - The race track lies on top of every floor: `TRACK` in `config.ts`, turned into a loop in world
   units by `track.ts` and painted by `floors/track.ts` (not a floor, so not in `FLOORS`).
 - Keys are `KeyboardEvent.code` values. Keep the two players' controls apart
@@ -46,7 +51,8 @@ with kids, who decide what the game should do. Keep it fun to change.
 
 1. `npm run typecheck`.
 2. Look at it in the browser, in both camera views (the 2D/3D button). If drawing changed,
-   also try a floor with glow (lava or arcade).
+   also try a floor with glow (lava or arcade). The test browser draws 3D in software, at a few
+   frames per second: judge speed only on a real computer (fps on the debug line).
 3. Measure behavior with a test car instead of guessing: the recipes are in `docs/dev-notes.md`.
 
 ## Git and deploying

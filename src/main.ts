@@ -4,10 +4,12 @@ import { Player, separate } from './player';
 import { fitToScreen, setCamera } from './camera';
 import { setFloor } from './floors';
 import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
-import { render } from './render';
+import { renderHud } from './hud';
+import { renderScene, resizeScene } from './scene';
 import { clearSkidMarks, updateSkidMarks } from './skidmarks';
 
-const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
+// The HUD's canvas lies on top of the 3D scene's canvas (scene.ts).
+const canvas = document.querySelector<HTMLCanvasElement>('#hud')!;
 const ctx = canvas.getContext('2d')!;
 
 let players: Player[] = [];
@@ -31,6 +33,7 @@ function resize(): void {
   canvas.width = Math.round(VIEW.width * dpr);
   canvas.height = Math.round(VIEW.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  resizeScene();
   // The track changes with the window. Before the start, put the cars back at the start line;
   // during the race, just push them back inside the walls if the arena shrank.
   if (racePhase() === 'waiting') placeCarsAtStart(players.length === 1 ? 1 : 2);
@@ -155,14 +158,26 @@ const STEP = 1 / 60;
 let last = performance.now();
 let acc = 0;
 
+// Frames drawn per second, counted over each second, for the debug line.
+let fps = 0;
+let frames = 0;
+let countingSince = performance.now();
+
 function frame(now: number): void {
   acc += Math.min(0.25, (now - last) / 1000);
   last = now;
+  frames++;
+  if (now - countingSince >= 1000) {
+    fps = Math.round((frames * 1000) / (now - countingSince));
+    frames = 0;
+    countingSince = now;
+  }
   while (acc >= STEP) {
     update(STEP);
     acc -= STEP;
   }
-  render(ctx, players, showKeys ? heldKeys() : null);
+  renderScene(players);
+  renderHud(ctx, players, showKeys ? { keys: heldKeys(), fps } : null);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -1,5 +1,4 @@
 import { TREASURE_MAP } from '../config';
-import { project } from '../camera';
 import { floorBlob, floorEllipse, floorLine, floorRect, gridStart, noise } from './shapes';
 
 export function paintTreasureMap(ctx: CanvasRenderingContext2D, W: number, H: number): void {
@@ -23,9 +22,8 @@ export function paintTreasureMap(ctx: CanvasRenderingContext2D, W: number, H: nu
   const tracePaper = () => {
     ctx.beginPath();
     edge.forEach(([x, y], i) => {
-      const p = project(x, y);
-      if (i === 0) ctx.moveTo(p.sx, p.sy);
-      else ctx.lineTo(p.sx, p.sy);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     });
     ctx.closePath();
   };
@@ -57,12 +55,9 @@ export function paintTreasureMap(ctx: CanvasRenderingContext2D, W: number, H: nu
   ctx.beginPath();
   for (const cx of [W * 0.25, W * 0.75]) {
     for (const [dx, s] of [[-22, 16], [0, 22], [22, 14]]) {
-      const left = project(cx + dx - s, H * 0.22);
-      const top = project(cx + dx, H * 0.22 - s);
-      const right = project(cx + dx + s, H * 0.22);
-      ctx.moveTo(left.sx, left.sy);
-      ctx.lineTo(top.sx, top.sy);
-      ctx.lineTo(right.sx, right.sy);
+      ctx.moveTo(cx + dx - s, H * 0.22);
+      ctx.lineTo(cx + dx, H * 0.22 - s);
+      ctx.lineTo(cx + dx + s, H * 0.22);
     }
   }
   ctx.stroke();
@@ -79,9 +74,10 @@ export function paintTreasureMap(ctx: CanvasRenderingContext2D, W: number, H: nu
   for (let i = 0; i < 16; i++) {
     const a = (i / 16) * Math.PI * 2 - Math.PI / 2;
     const len = i % 4 === 0 ? r : i % 2 === 0 ? r * 0.55 : r * 0.18;
-    const p = project(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-    if (i === 0) ctx.moveTo(p.sx, p.sy);
-    else ctx.lineTo(p.sx, p.sy);
+    const px = cx + Math.cos(a) * len;
+    const py = cy + Math.sin(a) * len;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.closePath();
   ctx.fill();
