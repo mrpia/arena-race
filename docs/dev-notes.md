@@ -154,6 +154,9 @@ is in world units.
   repo folder.
 - `gh` 2.46 knows `gh repo edit --visibility public`, but not
   `--accept-visibility-change-consequences`. Check `--help` before suggesting a flag.
+- `gh pr edit` (2.46) stops with a GraphQL error about "Projects (classic)" being deprecated and
+  changes nothing. Edit a pull request through the REST API instead:
+  `gh api -X PATCH repos/mrpia/arena-race/pulls/<number> -f title=… -F body=@file.md`.
 - The Firebase CLI (`firebase-tools`) is installed globally under nvm's Node 22; switching nvm
   to another Node version hides it. Its network calls need the command sandbox off, and
   `firebase login --no-localhost` is interactive: the adult runs it in their own terminal.
