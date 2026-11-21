@@ -1,7 +1,8 @@
 # Arena Race
 
-A top-down race car game for one or two players on one keyboard: two cars race three laps
-round a track, or one races alone against the clock.
+A race car game for one or two players on one keyboard: two cars race three laps round a
+track, or one races alone against the clock. Watch from above, or ride along behind the car
+or in the driver's seat.
 
 Play it at https://arena-race.mrpia.ch (you need a keyboard).
 
@@ -65,6 +66,10 @@ several are held. The same line shows how many frames per second the computer dr
 The GitHub icon at the top in the middle (before and after a race) opens this repo in a new
 tab: read the code, copy it, or open an issue with a bug or an idea (`GITHUB` in `config.ts`).
 
+How to test in the browser, the numbers measured so far and the traps we fell into are in
+[docs/dev-notes.md](docs/dev-notes.md). Ideas for livelier, more car-like driving are in
+[docs/driving-feel.md](docs/driving-feel.md).
+
 Out of ideas? Ideas for this game are in [docs/BACKLOG.md](docs/BACKLOG.md). Themes, twists and
 example prompts for two-player games in general are in arena-starter's
 [IDEAS.md](https://github.com/mrpia/arena-starter/blob/master/IDEAS.md)
@@ -85,7 +90,8 @@ example prompts for two-player games in general are in arena-starter's
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
 - `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
-- `src/main.ts` – canvas setup, the controls on the left, the start button with the player and view choices, the GitHub link and the game loop.
+- `src/main.ts` – canvas setup, the controls on the left, the start button with the player and view choices, the GitHub link, the pause button and menu, and the game loop.
+- `index.html` – the page: the two canvases, the buttons, the pause menu and all the styles.
 
 Click the camera button on the left (it shows the view you're in) for a row of all the
 views, like the floor button, and pick one: looking straight down (2D), a tilted camera
@@ -101,6 +107,12 @@ quickly it swings round. `SCENE` sets where the sun shines from, how dark the sh
 and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are, and `CAR.steer` how far the front
 wheels turn when you steer, and `CAR.lean` how far the body leans in turns and when speeding up
 or slowing down (both only a look: they don't change how the car drives).
+
+The button under the camera button picks the floor, from a row of ten: grass, street, wooden
+floor, arcade, chess board, frozen lake, moon, treasure map, brick baseplate and lava. A floor
+is only paint. The track lies on top of every one, and the cars drive the same on all of them,
+ice included. `FLOORS` in `config.ts` lists them and `FLOOR` sets the one the game starts on;
+each floor has its own values there too (`GRASS`, `LAVA` and so on).
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.

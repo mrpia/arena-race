@@ -1,7 +1,8 @@
 # Arena Race
 
-A top-down race car game for one or two players on one keyboard, built in short sessions
-with kids, who decide what the game should do. Keep it fun to change.
+A race car game for one or two players on one keyboard, seen from above or riding along with
+the car, built in short sessions with kids, who decide what the game should do. Keep it fun
+to change.
 
 `README.md` is the overview: controls, files, what to tweak, deploying. In `docs/`:
 
