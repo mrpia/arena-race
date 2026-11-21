@@ -9,6 +9,7 @@ with kids, who decide what the game should do. Keep it fun to change.
   looks odd, check here first: it may be on purpose.
 - `BACKLOG.md`: ideas and known issues not dealt with yet, each under a short slug.
 - `dev-notes.md`: how to test in the browser, numbers measured so far, traps we fell into.
+- `driving-feel.md`: ideas for livelier cars in 3D and more car-like driving (backlog: driving-feel).
 
 ## Working with the kids
 
