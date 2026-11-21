@@ -18,12 +18,19 @@ import type { Player } from './player';
 
 const BEVEL = 1.5; // the body's edges are rounded off this much
 
+// The parts of each car that move on their own, for placeCar().
+const movingParts = new WeakMap<Group, { frontWheels: Mesh[]; leaning: Group }>();
+
 // A car pointing along the scene's x axis, standing on the floor.
 export function buildCar(config: PlayerConfig): Group {
   const car = new Group();
   const L = CAR.length / 2;
   const W = CAR.width / 2;
   const top = CAR.rideHeight + CAR.height;
+  // Everything but the wheels leans on the springs (placeCar), tipping round the middle of the
+  // car on the floor.
+  const leaning = new Group();
+  car.add(leaning);
 
   // The body: its outline seen from above, pulled up into a slab. The outline is drawn a bevel
   // smaller all round, because the rounded edges grow it back to full size.
@@ -47,7 +54,7 @@ export function buildCar(config: PlayerConfig): Group {
   bodyShape.rotateX(-Math.PI / 2); // the slab was pulled up along z; stand it on the floor instead
   bodyShape.translate(0, CAR.rideHeight + BEVEL, 0);
   const body = new Mesh(bodyShape, new MeshPhongMaterial({ color: config.color, shininess: 60, specular: 0x333333 }));
-  car.add(body);
+  leaning.add(body);
 
   // Four wheels, poking out a little at the sides. The front ones turn with the steering (placeCar).
   const { radius, width } = CAR.wheel;
@@ -71,7 +78,7 @@ export function buildCar(config: PlayerConfig): Group {
     new MeshLambertMaterial({ color: stripePaint.color, transparent: stripePaint.opacity < 1, opacity: stripePaint.opacity }),
   );
   stripe.position.set(0, top + 0.2, 0);
-  car.add(stripe);
+  leaning.add(stripe);
 
   const glass = cssColor(CAR.colors.windshield);
   const windshield = new Mesh(
@@ -79,7 +86,7 @@ export function buildCar(config: PlayerConfig): Group {
     new MeshPhongMaterial({ color: glass.color, transparent: glass.opacity < 1, opacity: glass.opacity, shininess: 90 }),
   );
   windshield.position.set(L * 0.4, top + 2.5, 0);
-  car.add(windshield);
+  leaning.add(windshield);
 
   // The driver sits a bit behind the middle: a round helmet, half sunk into the car, with a dark
   // visor on the front. The visor is a slice of a slightly bigger ball, from the eyes to the chin
@@ -96,18 +103,15 @@ export function buildCar(config: PlayerConfig): Group {
   );
   driver.add(helmet, visor);
   driver.position.set(-L * 0.2, top + r * 0.5, 0);
-  car.add(driver);
+  leaning.add(driver);
 
   car.traverse((part) => (part.castShadow = part.receiveShadow = true));
   // The driver and the windshield go on a layer of their own, so the camera in the driver's seat
   // can leave them out (camera.ts) while every other camera still sees them.
   for (const part of [windshield, helmet, visor]) part.layers.set(carLayer(config));
-  movingParts.set(car, { frontWheels });
+  movingParts.set(car, { frontWheels, leaning });
   return car;
 }
-
-// The parts of each car that move on their own, for placeCar().
-const movingParts = new WeakMap<Group, { frontWheels: Mesh[] }>();
 
 // The layer of this player's driver and windshield: 1 for player 1, 2 for player 2. Layer 0 has
 // everything else.
@@ -115,7 +119,7 @@ export function carLayer(config: PlayerConfig): number {
   return 1 + Math.max(0, PLAYERS.indexOf(config));
 }
 
-// Move the car to where the player is now, and point its front wheels where it steers.
+// Move the car to where the player is now, point its front wheels where it steers, and lean its body.
 export function placeCar(car: Group, p: Player): void {
   car.position.set(p.x, 0, p.y);
   car.rotation.y = -p.angle; // turning toward +y on the floor is turning the other way round the scene's up axis
@@ -123,5 +127,7 @@ export function placeCar(car: Group, p: Player): void {
   if (!parts) return;
   const steer = -p.wheelTurn * ((CAR.steer.angle * Math.PI) / 180); // the same way round as the car itself
   for (const wheel of parts.frontWheels) wheel.rotation.y = steer;
+  parts.leaning.rotation.x = (p.roll * Math.PI) / 180; // the car's right side (+z) goes down
+  parts.leaning.rotation.z = (-p.dip * Math.PI) / 180; // the nose (+x) goes down
 }
 

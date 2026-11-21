@@ -11,7 +11,7 @@ A speed boost after a drift, with sparks. Discussed in step 6 (brake and drift),
 ## driving-feel
 
 The cars feel static in the views that ride along with them, and they could drive more like
-real cars. The front wheels steer since step 26. Added 2026-11-21 by the adult as a general wish;
+real cars. Since steps 26 and 27 the front wheels steer and the body leans. Added 2026-11-21 by the adult as a general wish;
 nothing chosen yet. The ideas, how driving works today and the side effects are in
 [driving-feel.md](driving-feel.md).
 

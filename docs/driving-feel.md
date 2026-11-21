@@ -10,14 +10,14 @@ car, 👀 driver's seat), and you don't see the front wheels turn.
 ## What the 3D car does today
 
 - `buildCar()` in `cars.ts` makes the car one stiff group, and `placeCar()` moves it and turns it
-  round its up axis. Since step 26 the front wheels steer; nothing else on the car moves by itself:
-  the wheels don't roll, the body doesn't lean.
+  round its up axis. Since step 26 the front wheels steer, and since step 27 the body leans on
+  springs (out of turns, nose down when slowing down). The wheels don't roll.
 - The wheels are plain black cylinders, so even rolling wheels wouldn't show. A lighter hub or a
   stripe on the side would.
 - Driver's seat: the front wheels are about 16 units ahead of the camera and 16 to the side. In a
   full 1280×800 window they show in the bottom corners, but each half in split screen (step 21) is
   too narrow and only the nose shows (both seen in the browser in step 26). So in a two-player
-  race the steering wheels don't show from the driver's seat, but a leaning body would.
+  race the steering wheels don't show from the driver's seat, but the leaning nose does.
 - Behind the car (140 back, 65 high), the front wheels show beside the body, but their turn is hard
   to make out while the camera swings round (step 26).
 
@@ -42,11 +42,7 @@ Driving, the balance between the players and the records all stay the same.
 - **Rolling wheels**: they need a mark to show it (see above). At 260 units/s a wheel of radius 7
   turns about 6 times a second, 35° per frame at 60 fps. A hub with more than four spokes can
   then look like it spins backwards.
-- **Lean**: the body leans out in turns, dips its nose when braking, maybe shakes on the grass.
-  The body, stripe, windshield and helmet need a group of their own above the wheels. The
-  driver's-seat camera is placed from the player's position, not from the 3D body
-  (`camera.ts`), so it stays level while the nose tilts in front of it. A rocking camera could
-  make people queasy.
+- **Grass shake**: the body jiggles while the car is on the grass, on top of the lean (step 27).
 - **Camera**: the driver's seat turns exactly with the nose (`swing` 0); behind the car the
   camera lags 0.25 s. Both were the adult's choice in step 18. A little swing or tilt into the
   turn would feel less stiff. Step 18 left open whether anyone gets queasy.

@@ -549,3 +549,34 @@ pull request.
   screen they're out of sight (each half is too narrow): only the nose shows. Behind the car they
   show, but the turn is hard to make out while the camera swings round.
 - Not checked: how it feels to the kids, and whether 25° is enough to notice behind the car.
+
+## 27. The body leans on its springs (2026-11-21)
+
+**Asked (by the adult):** together with step 26, so the car feels less static in the riding views.
+
+- Defaults, not choices: the body leans against how the car's speed really changes, not against
+  the keys. So it leans out of turns (and drifts), dips its nose when the car slows down (brake,
+  grass, tires) and lifts it when the car speeds up (after "LOS!", after letting go of the brake).
+  A crash into the tires dives the nose all the way. Leaning against the keys would be simpler,
+  but would miss the grass and the tires.
+- Springs, so the body settles back with a small wobble (2.5 bounces per second, `damping` 0.5).
+  4° out of a full-speed turn at full lock, 2° of nose for the same push, never more than 6°
+  (`CAR.lean`). The crash into the tires lasts one physics step; the spring gets the whole jolt and
+  stops dead at 6°, like springs pressed all the way in. Stopping the jolt itself at 6° instead
+  left the spring hardly moving, and the nose only lifted (tried in a simulation first).
+- Everything but the wheels leans: body, stripe, windshield and helmet, tipping round the middle
+  of the car on the floor. The driver's-seat camera is placed from the player, not from the
+  body, so it stays level while the nose tilts in front of it.
+- Only a look, like step 26. The lean is on the player (`roll`, `dip`), updated with the physics:
+  it stands still while paused and starts level in each race.
+- In a drift the nose lifts about 1.4°: the car points into the corner, so part of the pull toward
+  the corner goes along the nose. Left as it is.
+- Checked: typecheck; a test car with walls and grass off (start: nose up 3.9°; full-lock right
+  turn: 4° toward the left, out of the turn, then 3.8°; let go: level again within 0.5 s; brake:
+  nose down 1.9°, and up 1.9° on letting go; drift left: 3.4° toward the right), and straight into
+  a tire (nose down 6°, then up 4.4° driving off). The direction checked in a picture from behind,
+  with the lean made 15° for the test. The riding views on lava, the driver's seat, and two players
+  in split screen.
+- Not checked: how it feels in motion (the test browser draws about 5 frames per second), whether
+  4° is enough to notice, and whether anyone gets queasy in the driver's seat. Speed: two angles
+  per car per frame, not measured.

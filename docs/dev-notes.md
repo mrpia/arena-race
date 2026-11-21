@@ -97,6 +97,9 @@ is in world units.
 - One lap is about 2816 world units, about 11 s flat out. A three-lap race takes 35 s plus
   mistakes.
 - Speed on grass: 117, on asphalt 260.
+- Body lean (step 27, `CAR.lean` defaults): 4° out of a full-lock turn at full speed, 3.8° once
+  steady; 3.4° drifting; nose down 1.9° braking, about 2° onto the grass (only simulated), 6° (the most) into a tire; nose
+  up 3.9° after "LOS!". Back to level within about 0.5 s.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
 - The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:
@@ -161,3 +164,8 @@ is in world units.
   its own (`npx vite --port 5288 --strictPort`), since another session may hold the usual ones.
 - From a worktree, the Playwright MCP still saves screenshots in the main checkout's
   `.playwright-mcp/`, next to other sessions' files. Give yours a prefix and delete only those.
+- At about 5 frames per second, the test browser runs the physics in chunks of a dozen steps, so a
+  key held for 350 ms steered for about 0.6 s, and a turn timed from the start line ended in the
+  tires (step 27). To see how a car looks in a given state, drive a test car instead, then call
+  `placeCar()` (from `cars.ts`) on the scene's car with the test car, inside your own render loop
+  (see the recipe for looking at the scene from any angle).

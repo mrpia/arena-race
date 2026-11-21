@@ -97,7 +97,8 @@ half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` ho
 looks: tilt and perspective, or how far behind and how high the camera rides, and how
 quickly it swings round. `SCENE` sets where the sun shines from, how dark the shadows are
 and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are, and `CAR.steer` how far the front
-wheels turn when you steer (only a look: it doesn't change how tightly the car turns).
+wheels turn when you steer, and `CAR.lean` how far the body leans in turns and when speeding up
+or slowing down (both only a look: they don't change how the car drives).
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.
