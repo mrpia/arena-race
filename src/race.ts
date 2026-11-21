@@ -1,5 +1,5 @@
 // How far the race has got: waiting for the start button, counting down, racing, or finished.
-// Also counts everyone's laps and decides who wins.
+// A race can also be paused and quit. Also counts everyone's laps and decides who wins.
 import { COUNTDOWN, RACE } from './config';
 import type { Player } from './player';
 import { saveTime } from './records';
@@ -12,6 +12,10 @@ let clock = 0; // seconds since the countdown started
 let finishedAt: number | null = null; // the clock when the race ended
 let winners: Player[] = [];
 let solo: { time: number; newRecord: boolean } | null = null; // how a one-player race went
+let paused = false;
+// Going on after a pause: seconds into the countdown that comes first. Null when there's none.
+// The race clock waits until "LOS!", so a pause doesn't count toward the race time.
+let restart: number | null = null;
 
 export function racePhase(): Phase {
   return phase;
@@ -38,17 +42,60 @@ export function startCountdown(): void {
   finishedAt = null;
   winners = [];
   solo = null;
+  paused = false;
+  restart = null;
+}
+
+// During the countdown or the race, everything can stand still for a while.
+export function raceRunning(): boolean {
+  return phase === 'countdown' || phase === 'racing';
+}
+
+export function racePaused(): boolean {
+  return paused;
+}
+
+export function pauseRace(): void {
+  if (raceRunning()) paused = true;
+}
+
+// Going on after a pause starts with a countdown, so everyone has their hands back on the keys.
+// Paused during the start countdown, that countdown simply begins again from the top.
+export function resumeRace(): void {
+  if (!paused) return;
+  paused = false;
+  if (phase === 'countdown') clock = 0;
+  else restart = 0;
+}
+
+// Stop the race without a winner. The game is back to waiting for a start button.
+export function quitRace(): void {
+  phase = 'waiting';
+  clock = 0;
+  finishedAt = null;
+  winners = [];
+  solo = null;
+  paused = false;
+  restart = null;
 }
 
 export function updateRace(dt: number): void {
-  if (phase === 'waiting') return;
+  if (phase === 'waiting' || paused) return;
+  const total = COUNTDOWN.from * COUNTDOWN.step;
+  if (restart !== null) {
+    restart += dt;
+    if (restart < total) return; // the race clock waits for "LOS!"
+    if (restart >= total + COUNTDOWN.goTime) restart = null;
+  }
   clock += dt;
-  if (phase === 'countdown' && clock >= COUNTDOWN.from * COUNTDOWN.step) phase = 'racing';
+  if (phase === 'countdown' && clock >= total) phase = 'racing';
 }
 
-// The cars stay at the start line until the countdown is over, and stop when someone has won.
+// The cars stay at the start line until the countdown is over, stand still while the race is paused
+// and until "LOS!" after it, and stop when someone has won.
 export function carsCanDrive(): boolean {
-  return phase === 'racing';
+  const waitingForGo = restart !== null && restart < COUNTDOWN.from * COUNTDOWN.step;
+  return phase === 'racing' && !paused && !waitingForGo;
 }
 
 // Laps: the track is split into SECTORS stretches. A car has to drive through them in order, and
@@ -81,15 +128,17 @@ export function lapsDone(p: Player): number {
 }
 
 // The countdown and what it shows right now ("3", "2", "1", then the go sign), and how long it has been
-// up: 0 = just appeared, 1 = about to go. Null when there's nothing to show.
+// up: 0 = just appeared, 1 = about to go. Null when there's nothing to show. That's the countdown at
+// the start, or the one after a pause; while paused, nothing.
 export function countdownSign(): { text: string; age: number; go: boolean } | null {
-  if (phase === 'waiting') return null;
+  if (phase === 'waiting' || paused) return null;
   const { from, step, go, goTime } = COUNTDOWN;
   const total = from * step;
-  if (clock < total) {
-    const shown = Math.floor(clock / step);
-    return { text: String(from - shown), age: (clock - shown * step) / step, go: false };
+  const t = restart ?? clock;
+  if (t < total) {
+    const shown = Math.floor(t / step);
+    return { text: String(from - shown), age: (t - shown * step) / step, go: false };
   }
-  if (clock < total + goTime) return { text: go, age: (clock - total) / goTime, go: true };
+  if (t < total + goTime) return { text: go, age: (t - total) / goTime, go: true };
   return null;
 }

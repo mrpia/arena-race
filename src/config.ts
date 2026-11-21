@@ -159,6 +159,18 @@ export const GITHUB = {
   title: 'Der Code des Spiels auf GitHub',
 };
 
+// During the countdown and the race, a pause button takes the GitHub icon's place at the top. It
+// opens a menu in the middle: go on (after a countdown, so everyone has their hands back on the
+// keys) or quit the race (no winner, no record, back to the start buttons).
+export const PAUSE = {
+  key: 'Escape', // pauses, and pressed again goes on
+  button: '⏸️',
+  title: 'Pause', // shows when the mouse rests on the button, with the key: "Pause (Escape)"
+  text: 'Pause', // the heading of the menu
+  resume: 'Weiter',
+  quit: 'Beenden',
+};
+
 // Before the race: a start button, then a countdown. The cars wait at the start line until it's done.
 export const COUNTDOWN = {
   from: 3, // counts 3, 2, 1

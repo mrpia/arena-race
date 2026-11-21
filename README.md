@@ -28,6 +28,12 @@ A lap only counts if you drove the whole way round, not back and forth over the 
 After the race the two start buttons come back. On phones and tablets a line above them says
 you need a keyboard (`RACE.keyboardHint`); it goes away at the first key press.
 
+During the countdown and the race, a pause button (⏸️) sits at the top in the middle, where the
+GitHub icon is otherwise; Escape does the same. It stops everything and opens a menu:
+**Weiter** goes on after a short countdown, so everyone has their hands back on the keys, and
+**Beenden** stops the race with no winner and no record. Racing alone, the pause doesn't count
+toward the time. Texts and the key are in `PAUSE` in `config.ts`.
+
 - **2 Spieler:** the first car to drive 3 laps wins (`RACE.laps`).
 - **1 Spieler:** player 1's car races alone against the clock, steered by either side's keys. The
   best time is kept in the browser. The track grows with the window, so a bigger window
@@ -54,8 +60,8 @@ keys are held. Use it to check that your keyboard registers both players at once
 several are held. The same line shows how many frames per second the computer draws
 (`fps`); 60 means it keeps up with a normal screen.
 
-The GitHub icon at the top in the middle opens this repo in a new tab: read the code, copy
-it, or open an issue with a bug or an idea (`GITHUB` in `config.ts`).
+The GitHub icon at the top in the middle (before and after a race) opens this repo in a new
+tab: read the code, copy it, or open an issue with a bug or an idea (`GITHUB` in `config.ts`).
 
 Out of ideas? Ideas for this game are in [docs/BACKLOG.md](docs/BACKLOG.md). Themes, twists and
 example prompts for two-player games in general are in arena-starter's

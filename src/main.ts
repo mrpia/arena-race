@@ -1,9 +1,20 @@
-import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW, VIEW_KEYS } from './config';
+import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PAUSE, PLAYERS, RACE, VIEW, VIEW_KEYS } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, followCars, setCamera } from './camera';
 import { setFloor } from './floors';
-import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
+import {
+  carsCanDrive,
+  countLaps,
+  pauseRace,
+  quitRace,
+  racePaused,
+  racePhase,
+  raceRunning,
+  resumeRace,
+  startCountdown,
+  updateRace,
+} from './race';
 import { keyLabel, renderHud } from './hud';
 import { renderScene, resizeScene } from './scene';
 import { clearSkidMarks, updateSkidMarks } from './skidmarks';
@@ -137,6 +148,47 @@ githubLink.setAttribute('aria-label', GITHUB.title);
 // Let go of focus, like the buttons, so the keys stay with the game.
 githubLink.addEventListener('click', () => githubLink.blur());
 
+// The pause button at the top during a race, in the GitHub icon's place, and the menu it opens.
+const pauseButton = document.querySelector<HTMLButtonElement>('#pause')!;
+const pauseMenu = document.querySelector<HTMLDivElement>('#pause-menu')!;
+const resumeButton = document.querySelector<HTMLButtonElement>('#resume')!;
+const quitButton = document.querySelector<HTMLButtonElement>('#quit')!;
+pauseButton.textContent = PAUSE.button;
+pauseButton.title = `${PAUSE.title} (${keyLabel(PAUSE.key)})`;
+pauseButton.setAttribute('aria-label', PAUSE.title);
+document.querySelector<HTMLHeadingElement>('#pause-text')!.textContent = PAUSE.text;
+resumeButton.textContent = PAUSE.resume;
+quitButton.textContent = PAUSE.quit;
+
+function setPaused(on: boolean): void {
+  if (on) pauseRace();
+  else resumeRace();
+  pauseMenu.hidden = !racePaused();
+}
+// Each button lets go of focus after a click, or Space or Enter (players' drift keys) would click it again.
+pauseButton.addEventListener('click', () => {
+  setPaused(!racePaused());
+  pauseButton.blur();
+});
+resumeButton.addEventListener('click', () => {
+  setPaused(false);
+  resumeButton.blur();
+});
+quitButton.addEventListener('click', () => {
+  quitRace();
+  placeCarsAtStart(players.length === 1 ? 1 : 2);
+  showRacing(false);
+  quitButton.blur();
+});
+
+// During a race the pause button is at the top; before and after it, the start buttons and the GitHub icon.
+function showRacing(racing: boolean): void {
+  startButtons.hidden = racing;
+  githubLink.hidden = racing;
+  pauseButton.hidden = !racing;
+  pauseMenu.hidden = true;
+}
+
 // The two start buttons in the middle: race alone against the clock, or two players.
 // Either one puts the cars at the start line and begins the countdown. They come back after each race.
 const startButtons = document.querySelector<HTMLDivElement>('#start-buttons')!;
@@ -150,7 +202,7 @@ for (const [id, count, label] of startChoices) {
   button.addEventListener('click', () => {
     placeCarsAtStart(count);
     startCountdown();
-    startButtons.hidden = true;
+    showRacing(true);
     // Let go of focus, or Space (a player's drift key) would click it again.
     button.blur();
   });
@@ -174,6 +226,12 @@ function update(dt: number): void {
   const outsideRace = racePhase() === 'waiting' || racePhase() === 'finished';
   if (outsideRace && wasPressed(VIEW_KEYS.back)) stepCamera(-1);
   if (outsideRace && wasPressed(VIEW_KEYS.next)) stepCamera(1);
+  // The pause key pauses the race, and pressed again goes on.
+  if (raceRunning() && wasPressed(PAUSE.key)) setPaused(!racePaused());
+  if (racePaused()) {
+    endFrame();
+    return; // everything stands still
+  }
   updateRace(dt);
   updateSkidMarks(dt);
   // Before "LOS!" and after someone has won, the cars can't drive, steer, brake or drift.
@@ -183,7 +241,7 @@ function update(dt: number): void {
       for (let j = i + 1; j < players.length; j++) separate(players[i], players[j]);
     }
     countLaps(players);
-    if (racePhase() === 'finished') startButtons.hidden = false;
+    if (racePhase() === 'finished') showRacing(false);
   }
   endFrame();
 }

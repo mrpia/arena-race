@@ -476,3 +476,30 @@ starting the race, and the keys J and K to switch views, one each way.
   pointing the right way; the map at 1280×800 and 1024×600, clear of the countdown and the
   winner's line; no map in 2D or racing alone.
 - Not checked: whether the kids look at it while racing.
+
+## 24. Pause and quit, and no GitHub icon while racing (2026-11-21)
+
+**Asked (by the adult):** hide the GitHub icon while playing, and put a pause/quit button at the
+top in its place.
+
+- Three choices, decided by the adult. One ⏸️ button that pauses and opens a menu with "Weiter"
+  (go on) and "Beenden" (quit), rather than two buttons on top, where one wrong click would end the
+  race. Going on starts with a countdown, rather than straight away, so the player who used the
+  mouse has their hands back on the keys. Escape also pauses and goes on (rather than P, or the
+  button only).
+- During the countdown and the race the ⏸️ button sits where the GitHub icon was; before and
+  after a race the GitHub icon is back.
+- While paused, the cars, the countdown, the stopwatch and the fading of the skid marks stand
+  still. The race clock also waits through the countdown after the pause, so racing alone the
+  pause doesn't count toward the time or the record. Paused during the start countdown, that
+  countdown begins again from 3.
+- "Beenden" stops the race with no winner and no record: the cars go back on the grid, and the
+  start buttons, the view row and the GitHub icon come back.
+- The camera and floor buttons still work while paused; J and K don't (they only work outside a
+  race).
+- Texts and the key are in `PAUSE` in `config.ts`.
+- Checked: typecheck; GitHub icon and pause button before, during and after a race; Escape pausing
+  (cars and race clock unchanged 1.5 s later) and going on (a countdown, the clock waiting until
+  "LOS!"); the button with "Weiter" and "Beenden" (cars back on the grid, clock at 0); pausing
+  during the start countdown; the pause button above the map in split screen.
+- Not checked: speed (the 3D scene didn't change; the button and the menu are page elements).
