@@ -22,7 +22,7 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   Records are stored per number of laps, so read the record while `laps` is still 0.
 - To drive a test car, hold keys with `page.keyboard.down(...)`, then call
   `player.update(1 / 60)` in a loop inside `page.evaluate`. Give the test car its own keys
-  (for example KeyH, KeyL, KeyU, KeyI; not J and K, which switch the view outside a race) and
+  (for example KeyH, KeyL, KeyU, KeyI; not J and K, which switch the view) and
   don't start a race, so the game's own cars stay put.
 - To measure steering without grass or walls, set `halfWidth = 1e4` and `tires.length = 0` on
   the cached object from `getTrack()`, then reload the page afterwards. The 3D tires stay
@@ -97,6 +97,9 @@ is in world units.
 - One lap is about 2816 world units, about 11 s flat out. A three-lap race takes 35 s plus
   mistakes.
 - Speed on grass: 117, on asphalt 260.
+- Body lean (step 27, `CAR.lean` 6, 3, 8): 6° out of a full-lock turn at full speed, 5.7° once
+  steady; nose down 2.9° braking; nose up 5.8° after "LOS!". Simulated: 6.3° drifting, about 3°
+  onto the grass, 8° (the most) into a tire. Back to level within about 0.5 s.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
 - The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:
@@ -151,8 +154,21 @@ is in world units.
   repo folder.
 - `gh` 2.46 knows `gh repo edit --visibility public`, but not
   `--accept-visibility-change-consequences`. Check `--help` before suggesting a flag.
+- `gh pr edit` (2.46) stops with a GraphQL error about "Projects (classic)" being deprecated and
+  changes nothing. Edit a pull request through the REST API instead:
+  `gh api -X PATCH repos/mrpia/arena-race/pulls/<number> -f title=… -F body=@file.md`.
 - The Firebase CLI (`firebase-tools`) is installed globally under nvm's Node 22; switching nvm
   to another Node version hides it. Its network calls need the command sandbox off, and
   `firebase login --no-localhost` is interactive: the adult runs it in their own terminal.
 - Firebase Hosting gives `index.html` `max-age=3600` unless `firebase.json` says otherwise
   (found in math-quizz, its commit `47fef35`). That's why `/` and `/index.html` are `no-cache`.
+- In a worktree (`.claude/worktrees/<name>`) there's no `node_modules`, and none is needed: Node,
+  `tsc` and `npx vite` find the main checkout's, a few folders up. Give its dev server a port of
+  its own (`npx vite --port 5288 --strictPort`), since another session may hold the usual ones.
+- From a worktree, the Playwright MCP still saves screenshots in the main checkout's
+  `.playwright-mcp/`, next to other sessions' files. Give yours a prefix and delete only those.
+- At about 5 frames per second, the test browser runs the physics in chunks of a dozen steps, so a
+  key held for 350 ms steered for about 0.6 s, and a turn timed from the start line ended in the
+  tires (step 27). To see how a car looks in a given state, drive a test car instead, then call
+  `placeCar()` (from `cars.ts`) on the scene's car with the test car, inside your own render loop
+  (see the recipe for looking at the scene from any angle).

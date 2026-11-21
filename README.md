@@ -92,11 +92,13 @@ a moment after the car turns. With two players the last two split the screen: pl
 on the left half, player 2's on the right (`SPLIT_SCREEN`), with a small map of the track at
 the top in the middle showing both cars (`TRACK_MAP`). Before and after a race the same
 views sit in a row under the start buttons, and J and K go back and forward through them
-(`VIEW_KEYS`); during a race the two keys do nothing, so nobody switches the other player's
-half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each view
+(`VIEW_KEYS`). Racing alone they also work during the race; in a two-player race they do
+nothing until the finish, so nobody switches the other player's half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each view
 looks: tilt and perspective, or how far behind and how high the camera rides, and how
 quickly it swings round. `SCENE` sets where the sun shines from, how dark the shadows are
-and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are.
+and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are, and `CAR.steer` how far the front
+wheels turn when you steer, and `CAR.lean` how far the body leans in turns and when speeding up
+or slowing down (both only a look: they don't change how the car drives).
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.

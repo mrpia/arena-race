@@ -32,6 +32,15 @@ export class Player {
   vy = 0;
   radius = PLAYER_RADIUS;
   bouncing = 0; // seconds left sliding back after hitting the tires
+  // Which way the 3D car's front wheels point (cars.ts): -1 = all the way left, 1 = all the way right.
+  // It follows the steering keys, swinging over in about CAR.steer.time.
+  wheelTurn = 0;
+  // How far the 3D car's body leans on its springs, in degrees (cars.ts, CAR.lean): `roll` toward
+  // the car's right side (out of a left turn), `dip` with the nose down (below 0 = nose up).
+  roll = 0;
+  dip = 0;
+  private rollSpeed = 0; // degrees per second
+  private dipSpeed = 0;
   // Stretches of track driven through in order (see race.ts). Cars start just behind the
   // start/finish line, so crossing it for the first time brings this to 0: the first lap begins.
   sectorsPassed = -1;
@@ -55,6 +64,7 @@ export class Player {
   }
 
   update(dt: number): void {
+    const [oldVx, oldVy] = [this.vx, this.vy];
     const drifting = this.held('drift');
     const asphalt = onTrack(this.x, this.y);
 
@@ -62,6 +72,7 @@ export class Player {
     const steer = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0);
     const turnSpeed = drifting ? DRIFT.turnSpeed : TURN_SPEED;
     this.angle += steer * ((turnSpeed * Math.PI) / 180) * dt;
+    this.wheelTurn += (steer - this.wheelTurn) * (1 - Math.exp(-dt / CAR.steer.time));
 
     // There's no gas pedal: the car always drives at PLAYER_SPEED, unless it's braking or on the grass.
     // What counts for the grass is the spot under the middle of the car.
@@ -89,6 +100,21 @@ export class Player {
     this.bounceOffTires();
     this.stayInArena();
     this.leaveSkidMarks(drifting && asphalt);
+    this.leanBody(oldVx, oldVy, dt);
+  }
+
+  // The body leans against how the car's speed changed in this step, like a real car on its
+  // springs: out of the turn, nose down when slowing down, nose up when speeding up.
+  private leanBody(oldVx: number, oldVy: number, dt: number): void {
+    const ax = (this.vx - oldVx) / dt;
+    const ay = (this.vy - oldVy) / dt;
+    const cos = Math.cos(this.angle);
+    const sin = Math.sin(this.angle);
+    const forward = ax * cos + ay * sin; // speeding up along the nose (below 0 = slowing down)
+    const right = -ax * sin + ay * cos; // pushed toward the car's right side, as in a right turn
+    const fullTurn = PLAYER_SPEED * ((TURN_SPEED * Math.PI) / 180); // the push of a full-speed turn at full lock
+    [this.roll, this.rollSpeed] = spring(this.roll, this.rollSpeed, (-right / fullTurn) * CAR.lean.side, dt);
+    [this.dip, this.dipSpeed] = spring(this.dip, this.dipSpeed, (-forward / fullTurn) * CAR.lean.nose, dt);
   }
 
   // How far the car is sliding sideways: the angle between where the nose points and where it goes, in degrees.
@@ -143,6 +169,16 @@ export class Player {
     this.x = Math.min(Math.max(this.x, r), ARENA.width - r);
     this.y = Math.min(Math.max(this.y, r), ARENA.height - r);
   }
+}
+
+// One step of a spring with a damper (CAR.lean): the angle swings toward `target` and settles there.
+// It stops dead at the largest angle, like a car's springs pressed all the way in.
+function spring(angle: number, speed: number, target: number, dt: number): [number, number] {
+  const { max, bounces, damping } = CAR.lean;
+  const w = 2 * Math.PI * bounces;
+  speed += (w * w * (target - angle) - 2 * damping * w * speed) * dt;
+  angle += speed * dt;
+  return Math.abs(angle) > max ? [Math.sign(angle) * max, 0] : [angle, speed];
 }
 
 // Push two overlapping players apart so they can bump but not overlap.

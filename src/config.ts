@@ -54,8 +54,8 @@ export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
 
 // Keys that switch the view for everyone, like the camera button: back and forward through CAMERAS.
-// They only work outside a race (before the start and after the finish), so nobody can switch the
-// other player's half in the middle of a race.
+// Racing alone they work at any time. In a two-player race they only work before the start and
+// after the finish, so nobody can switch the other player's half in the middle of a race.
 export const VIEW_KEYS = { back: 'KeyJ', next: 'KeyK' };
 
 // Two cars riding along: each player gets half the screen, side by side.
@@ -122,6 +122,20 @@ export const CAR = {
   helmetSize: 0.45, // the driver's helmet, compared to the car's width
   // Where the wheels sit, measured from the middle as a share of half the car's length.
   axles: { front: 0.55, back: 0.6 },
+  // The front wheels turn with the steering keys. Only a look: the turning circle stays TURN_SPEED's.
+  steer: {
+    angle: 25, // degrees the front wheels turn while steering
+    time: 0.06, // about how many seconds they take to swing over (0 = at once)
+  },
+  // The body leans on its springs, also only a look. It leans out of turns, dips its nose when the
+  // car slows down (brake, grass, tires) and lifts it when the car speeds up (after "LOS!").
+  lean: {
+    side: 6, // degrees the body leans out in a full-speed turn at full lock
+    nose: 3, // degrees the nose dips or lifts for the same push forward or back
+    max: 8, // it never leans further than this, even crashing into the tires
+    bounces: 2.5, // how quickly the springs bounce, in bounces per second
+    damping: 0.5, // 0 = the body keeps on wobbling, 1 = it settles without a wobble
+  },
   colors: {
     wheels: '#1e1e1e',
     windshield: 'rgba(25,35,55,0.75)',

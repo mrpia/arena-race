@@ -526,3 +526,84 @@ button.
   script stepping 2D, 3D, 🚗, 👀 with K.
 - Not checked: speed. Nothing that is drawn changed, and while testing, another session's test
   browser was drawing in software and pulled every view down alike (see dev-notes.md).
+
+## 26. The front wheels steer (2026-11-21)
+
+**Asked (by the adult):** the car felt static in the riding views, and you didn't see the front
+wheels turn (`driving-feel` in the backlog, ideas in `driving-feel.md`). Built in a worktree, for a
+pull request.
+
+- Defaults, not choices: "turning" read as steering, not rolling (rolling wheels stay in
+  `driving-feel.md`). The front wheels follow the steering keys at one fixed angle, 25°
+  (`CAR.steer.angle`), rather than an angle worked out from the turning circle (about 23° for a
+  normal turn, 40° braking or drifting). They turn the same way while drifting, with no
+  countersteering, so they always match the key that's held.
+- Steering is on or off, so the wheels would snap. They swing over in about 0.06 s instead
+  (`CAR.steer.time`).
+- Only a look: the turning circle, the balance between the players and the records stay the same.
+  How far the wheels are turned lives on the player (`wheelTurn`, updated with the physics), so it
+  stands still while paused and starts straight in each race; `cars.ts` turns the wheels.
+- Checked: typecheck; the wheels' angles read from the 3D scene (25° right, straight again, 25°
+  left; back wheels never) and a close-up from above; all four views while steering. In the
+  driver's seat you see both front wheels turn in the bottom corners of a full window. In split
+  screen they're out of sight (each half is too narrow): only the nose shows. Behind the car they
+  show, but the turn is hard to make out while the camera swings round.
+- Not checked: how it feels to the kids, and whether 25° is enough to notice behind the car.
+
+## 27. The body leans on its springs (2026-11-21)
+
+**Asked (by the adult):** together with step 26, so the car feels less static in the riding views.
+
+- Defaults, not choices: the body leans against how the car's speed really changes, not against
+  the keys. So it leans out of turns (and drifts), dips its nose when the car slows down (brake,
+  grass, tires) and lifts it when the car speeds up (after "LOS!", after letting go of the brake).
+  A crash into the tires dives the nose all the way. Leaning against the keys would be simpler,
+  but would miss the grass and the tires.
+- Springs, so the body settles back with a small wobble (2.5 bounces per second, `damping` 0.5).
+  4° out of a full-speed turn at full lock, 2° of nose for the same push, never more than 6°
+  (`CAR.lean`). The crash into the tires lasts one physics step; the spring gets the whole jolt and
+  stops dead at 6°, like springs pressed all the way in. Stopping the jolt itself at 6° instead
+  left the spring hardly moving, and the nose only lifted (tried in a simulation first).
+- Everything but the wheels leans: body, stripe, windshield and helmet, tipping round the middle
+  of the car on the floor. The driver's-seat camera is placed from the player, not from the
+  body, so it stays level while the nose tilts in front of it.
+- Only a look, like step 26. The lean is on the player (`roll`, `dip`), updated with the physics:
+  it stands still while paused and starts level in each race.
+- In a drift the nose lifts about 1.4°: the car points into the corner, so part of the pull toward
+  the corner goes along the nose. Left as it is.
+- Checked, with those first values: typecheck; a test car with walls and grass off (start: nose up 3.9°; full-lock right
+  turn: 4° toward the left, out of the turn, then 3.8°; let go: level again within 0.5 s; brake:
+  nose down 1.9°, and up 1.9° on letting go; drift left: 3.4° toward the right), and straight into
+  a tire (nose down 6°, then up 4.4° driving off). The direction checked in a picture from behind,
+  with the lean made 15° for the test. The riding views on lava, the driver's seat, and two players
+  in split screen.
+- Not checked: how it feels in motion (the test browser draws about 5 frames per second), whether
+  4° is enough to notice, and whether anyone gets queasy in the driver's seat. Speed: two angles
+  per car per frame, not measured.
+- Made stronger before merging, asked by the adult: `side` 6, `nose` 3, `max` 8 (were 4, 2, 6).
+  Measured again with the test car: nose up 5.8° at the start, 6° out of a full-lock turn (5.7°
+  once steady), nose down 2.9° braking. Simulated: 6.3° drifting, 8° into a tire. Only that crash
+  reaches 8°, and then the nose dips about 0.2 units into the floor for a moment: the car is 60
+  long and sits 4 above the floor, so a tilt past 7.7° touches it. Too little to see.
+- Every view shows the lean, because it's part of the car: `renderScene()` places each car once
+  per frame, before any camera draws, so both halves of the split screen show it too. From straight
+  above (2D) a tilt hardly shows: 6° moves the helmet about 2 units sideways, about 3 pixels at
+  1280×800 (worked out, not measured). It shows best behind the car and in the driver's seat.
+
+## 28. J and K during a race when racing alone (2026-11-21)
+
+**Asked (by the adult):** let the players switch views with J and K during the race, not only
+before and after it (step 22).
+
+- One question, decided by the adult: during a two-player race J and K stay off, as step 22 decided
+  (either kid could switch both halves, and the keys sit nearer player 2's hand). Rather than J and
+  K switching both halves in every race, or each player switching only their own half with their
+  own key.
+- Racing alone, J and K now work at any time: during the countdown, the race and the pause. The
+  camera button on the left still works in every race, as before.
+- The row with the J and K key caps still only shows before and after a race; nothing on screen
+  says the keys work during a solo race.
+- Checked: typecheck; racing alone, K and J during the countdown, the race and the pause, and again
+  after quitting; in a two-player race, J and K changing nothing during the countdown, the race and
+  the pause, and working again after quitting; switching to 🚗 and 👀 in the middle of a solo race.
+- Not checked: speed (nothing that is drawn changed).
