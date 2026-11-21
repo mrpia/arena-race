@@ -1,7 +1,7 @@
 import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
-import { fitToScreen, setCamera } from './camera';
+import { fitToScreen, followCar, ridesAlong, setCamera } from './camera';
 import { setFloor } from './floors';
 import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
 import { renderHud } from './hud';
@@ -42,21 +42,31 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 
-// 2D/3D button on the left: each click switches between looking straight down and the tilted view.
+// Camera button on the left: each click goes on to the next view in CAMERAS.
 const cameraButton = document.querySelector<HTMLButtonElement>('#camera')!;
 let cameraName: CameraName = CAMERA;
-function showCamera(): void {
-  setCamera(cameraName);
-  cameraButton.textContent = CAMERAS[cameraName].name;
-  cameraButton.title = `Camera: ${CAMERAS[cameraName].name} (click to switch)`;
+function showCamera(name: CameraName): void {
+  cameraName = name;
+  setCamera(name);
+  cameraButton.textContent = CAMERAS[name].name;
+  cameraButton.title = `Camera: ${CAMERAS[name].name} (click to switch)`;
+}
+// Until there's a split screen, the views that ride along with a car are only for racing alone:
+// in a two-player race they would show the road ahead to the cat's driver only.
+function cameraAllowed(name: CameraName): boolean {
+  const twoRacing = players.length === 2 && (racePhase() === 'countdown' || racePhase() === 'racing');
+  return !(twoRacing && ridesAlong(CAMERAS[name]));
 }
 cameraButton.addEventListener('click', () => {
-  cameraName = cameraName === '3d' ? '2d' : '3d';
-  showCamera();
+  const names = Object.keys(CAMERAS) as CameraName[];
+  let i = names.indexOf(cameraName);
+  do i = (i + 1) % names.length;
+  while (!cameraAllowed(names[i]));
+  showCamera(names[i]);
   // Let go of focus, or Space (a player's drift key) would click it again.
   cameraButton.blur();
 });
-showCamera();
+showCamera(CAMERA);
 
 // Floor button under the 2D/3D button: click it for a row of all floors, then pick one.
 const floorControl = document.querySelector<HTMLDivElement>('#floor-control')!;
@@ -119,6 +129,7 @@ for (const [id, count, label] of startChoices) {
   button.addEventListener('click', () => {
     placeCarsAtStart(count);
     startCountdown();
+    if (!cameraAllowed(cameraName)) showCamera('3d');
     startButtons.hidden = true;
     // Let go of focus, or Space (a player's drift key) would click it again.
     button.blur();
@@ -164,7 +175,8 @@ let frames = 0;
 let countingSince = performance.now();
 
 function frame(now: number): void {
-  acc += Math.min(0.25, (now - last) / 1000);
+  const dt = Math.min(0.25, (now - last) / 1000);
+  acc += dt;
   last = now;
   frames++;
   if (now - countingSince >= 1000) {
@@ -176,6 +188,7 @@ function frame(now: number): void {
     update(STEP);
     acc -= STEP;
   }
+  followCar(players[0], dt);
   renderScene(players);
   renderHud(ctx, players, showKeys ? { keys: heldKeys(), fps } : null);
   requestAnimationFrame(frame);

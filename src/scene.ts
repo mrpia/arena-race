@@ -24,7 +24,7 @@ import {
   TorusGeometry,
   WebGLRenderer,
 } from 'three';
-import { sceneCamera } from './camera';
+import { currentCamera, followedCar, ridesAlong, sceneCamera } from './camera';
 import { buildCar, placeCar } from './cars';
 import { ARENA, COLORS, type PlayerConfig, SCENE, SKID_MARKS, TIRES, VIEW } from './config';
 import { cssColor } from './cssColor';
@@ -36,7 +36,6 @@ import { getTrack, type Track } from './track';
 const renderer = new WebGLRenderer({ canvas: document.querySelector<HTMLCanvasElement>('#scene')!, antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFShadowMap;
-renderer.setClearColor(COLORS.background);
 
 const scene = new Scene();
 
@@ -188,7 +187,12 @@ export function renderScene(players: readonly Player[]): void {
   }
   updateSkidMarks();
 
+  // Riding along with a car, there's sky behind the arena; looking at the whole arena, the page's color.
+  const view = currentCamera();
+  renderer.setClearColor(ridesAlong(view) ? SCENE.sky : COLORS.background);
+
   // Each player keeps the same car from race to race; cars of players not racing are hidden.
+  const sittingIn = ridesAlong(view) && view.inside ? followedCar() : null;
   for (const car of cars.values()) car.visible = false;
   for (const p of players) {
     let car = cars.get(p.config);
@@ -198,7 +202,7 @@ export function renderScene(players: readonly Player[]): void {
       scene.add(car);
     }
     car.visible = true;
-    placeCar(car, p);
+    placeCar(car, p, p === sittingIn);
   }
 
   renderer.render(scene, sceneCamera());

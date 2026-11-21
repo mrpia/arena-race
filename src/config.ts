@@ -30,14 +30,25 @@ export const ARENA_MIN = { width: 500, height: 300 };
 // at this zoom. Bigger = bigger players, smaller arena.
 export const PIXELS_PER_UNIT = 1.2;
 
-// The two camera views. The 2D/3D button on the left switches between them while playing.
-// Both look at the middle of the floor from the near (bottom) side and zoom so the floor fits the window.
-// tilt: 0 = looking straight down, 90 = looking along the floor from its near edge.
-// fov: how wide the camera sees, in degrees. Wider = stronger perspective (the far edge looks smaller).
-// 0 = no perspective at all: far things look as big as near ones.
+// The camera views, in the order the camera button on the left goes through them.
+// fov (all views): how wide the camera sees, in degrees. Wider = stronger perspective.
+//
+// 2D and 3D look at the whole arena from its near (bottom) side and zoom so the floor fits the window.
+//   tilt: 0 = looking straight down, 90 = looking along the floor from its near edge.
+//   fov 0 = no perspective at all: far things look as big as near ones.
+//
+// The others ride along with the cat's car. Until there's a split screen, they're only for racing
+// alone: when two players start a race, the game switches to 3D.
+//   behind: how far behind the middle of the car the camera is (below 0 = in front of the middle)
+//   height: how high above the floor the camera is
+//   lookAhead: the camera looks at the floor this far in front of the car
+//   swing: about how many seconds the camera lags behind the car's turns (0 = turns exactly with it)
+//   inside: the camera sits in the car, so the car's own emoji driver and windshield are hidden
 export const CAMERAS = {
   '2d': { name: '2D', tilt: 0, fov: 0 },
   '3d': { name: '3D', tilt: 30, fov: 40 },
+  behind: { name: '🚗', fov: 60, behind: 140, height: 65, lookAhead: 100, swing: 0.25, inside: false },
+  driver: { name: '👀', fov: 65, behind: 0, height: 26, lookAhead: 220, swing: 0, inside: true },
 };
 export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
@@ -50,6 +61,7 @@ export const SCENE = {
   shadowSoftness: 2, // how blurry the edges of shadows are (0 = sharp)
   floorThickness: 40, // the floor is a slab this thick; its front side shows in the 3D view
   floorSharpness: 2, // pixels of floor picture per world unit: higher = sharper, but takes more memory (and time, on lava)
+  sky: '#8ecae6', // behind the arena in the views that ride along with the car
 };
 
 export const PLAYER_RADIUS = 24; // how close two cars get before they bump

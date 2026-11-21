@@ -35,8 +35,9 @@ with kids, who decide what the game should do. Keep it fun to change.
 - Game logic works in world units (`ARENA`). Only `camera.ts` (the cameras), `scene.ts` and
   `cars.ts` (the 3D scene) and `hud.ts` (text on top) know about the screen or three.js. In the
   scene, a spot (x, y) on the floor is (x, 0, y) and height is the scene's y axis.
-- Everything must look right in both camera views (`CAMERAS` in `config.ts`, switched by the 2D/3D
-  button). Don't hard-code a view; take view-specific values from `currentCamera()`.
+- Everything must look right in every camera view (`CAMERAS` in `config.ts`, switched by the camera
+  button): the two that show the whole arena and the two that ride along with the car. Don't
+  hard-code a view; take view-specific values from `currentCamera()`.
 - Each floor has its own painter file in `src/floors/`, listed in `FLOORS` (`config.ts`) and
   `FLOOR_LOOKS` (`floors/index.ts`). Painters draw in world units into a picture that `scene.ts`
   lays on the floor. Shapes shared by floors live in `floors/shapes.ts`; use its `glow()` rather
@@ -50,9 +51,9 @@ with kids, who decide what the game should do. Keep it fun to change.
 ## Checking a change
 
 1. `npm run typecheck`.
-2. Look at it in the browser, in both camera views (the 2D/3D button). If drawing changed,
+2. Look at it in the browser, in every camera view (the camera button). If drawing changed,
    also try a floor with glow (lava or arcade). The test browser draws 3D in software, at a few
-   frames per second: judge speed only on a real computer (fps on the debug line).
+   frames per second: judge speed on the real graphics card instead (recipe in `dev-notes.md`).
 3. Measure behavior with a test car instead of guessing: the recipes are in `docs/dev-notes.md`.
 
 ## Git and deploying

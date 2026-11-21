@@ -304,3 +304,43 @@ with shadows and 3D cars, and then a behind-car or in-car camera with split scre
   but it is unmeasured.
 - No fallback for browsers without WebGL 2 (three.js needs it): the game doesn't start. See
   `no-webgl` in the backlog.
+
+## 18. Riding along with the car, part 2 of 3 (2026-11-21)
+
+**Asked (by the adult):** part 2 of the move to 3D (step 17): a camera behind the car or in it.
+
+- Three choices, all decided by the adult. Views: both, behind the car and the driver's seat
+  (rather than only one of them). Following: the camera swings round a moment after the car
+  turns (rather than locked behind the nose, where the whole world spins at 180°/s, or along
+  the direction of travel, which would whip round 180° when the car bounces back off the tires).
+  Two players: these views are for racing alone until the split screen of part 3 (rather than
+  following the cat in a two-player race too, which would be unfair, or doing part 3 now).
+- `CAMERAS` has two more entries, and the camera button goes through all four: 2D, 3D, 🚗 behind
+  the car, 👀 driver's seat. The emoji names fit the button, as 2D and 3D do.
+- Behind the car: 140 units back, 65 high, looking at the floor 100 ahead, `swing` 0.25 s. The
+  camera keeps its distance to the car; only the way it looks lags behind the nose. A first try
+  (110 back, 45 high) put the horizon near the middle of the screen and the car filled a quarter
+  of its width.
+- Driver's seat: 26 above the middle of the car, looking at the floor 220 ahead, turning exactly
+  with the nose. The car's own emoji driver and windshield are hidden (`inside`): the emoji sat
+  where the camera is, and the dark windshield covered the bottom of the view. You see the nose
+  with its stripe and the front wheels.
+- Starting a two-player race while riding along switches to 3D, and during that race the button
+  skips the riding views. Before the race, with two cars on the grid, they can be tried; they
+  follow the cat. A new race or a new view puts the camera straight behind the car instead of
+  swinging round to it.
+- Behind the arena there's sky (`SCENE.sky`) in the riding views; the overviews keep the dark
+  page color. The HUD text got a soft dark edge so it stays readable over the sky.
+- Floor sharpness stays at 2 pixels per world unit. 4 was tried: the edge lines got only a little
+  crisper close to the car, and on lava the game dropped from 8.6 to 1.3 frames per second.
+- Measured on the adult's graphics card (AMD Radeon 780M, reached from WSL; recipe in
+  dev-notes.md), in the driver's seat: 57 to 60 frames per second on every floor except lava,
+  7.9 on lava. Lava is as slow in 2D and 3D (8.6): it is painted again every frame since
+  step 17. The adult saw 7 fps in the driver's seat and offered to drop slow floors; lava is the
+  only one, and step 19 fixes it instead.
+- Checked: typecheck; all four views; steering left behind the car (the car turns first, the
+  camera follows, and is straight behind again 1.5 s after letting go); the two-player switch to
+  3D and the button skipping the riding views during that race.
+- Not checked: how the swing and the driver's seat feel to the kids, and whether anyone gets
+  queasy. `swing`, `behind`, `height`, `lookAhead` and `fov` are the values to play with.
+

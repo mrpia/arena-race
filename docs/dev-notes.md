@@ -30,6 +30,14 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   `WEBGL_debug_renderer_info`). The game draws about 5 frames per second there, the old canvas
   version 56, an empty WebGL page 57. Physics runs in fixed steps, so driving tests still work,
   just slowly. Don't judge speed from it; use the fps on the debug line in a normal browser.
+- To measure on the real graphics card from WSL, start Chromium yourself with Playwright
+  (`playwright-core`) instead of the MCP browser: headless, with
+  `--use-angle=gl-egl --enable-gpu --ignore-gpu-blocklist`, and the environment
+  `GALLIUM_DRIVER=d3d12 LD_LIBRARY_PATH=/usr/lib/wsl/lib`. Check `WEBGL_debug_renderer_info`:
+  it must name the card ("D3D12 (AMD Radeon(TM) 780M)"); "llvmpipe" means software again, which
+  is what you get without `GALLIUM_DRIVER`. Count `requestAnimationFrame` calls over 3 s per view
+  and per floor. Numbers from step 18: in the driver's seat 57 to 60 fps on every floor but lava
+  (7.9, before step 19); on grass 60 in 2D, 3D and the driver's seat.
 - To find what a frame spends its time on, take a CPU profile through a CDP session
   (`Profiler.start`, wait, `Profiler.stop`) and add up self time per function. In step 17,
   JavaScript was about 1% and "(program)" the rest: waiting for the software renderer.

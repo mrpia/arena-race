@@ -80,6 +80,7 @@ export function buildCar(config: PlayerConfig): Group {
     new MeshPhongMaterial({ color: glass.color, transparent: glass.opacity < 1, opacity: glass.opacity, shininess: 90 }),
   );
   windshield.position.set(L * 0.4, top + 2.5, 0);
+  windshield.name = WINDSHIELD;
   car.add(windshield);
 
   for (const part of car.children) part.castShadow = part.receiveShadow = true;
@@ -89,14 +90,21 @@ export function buildCar(config: PlayerConfig): Group {
   const driver = new Sprite(new SpriteMaterial({ map: emojiPicture(config.emoji), alphaTest: 0.1 }));
   driver.scale.set(size, size, 1);
   driver.position.set(-L * 0.2, top + size * 0.3, 0);
+  driver.name = DRIVER;
   car.add(driver);
   return car;
 }
 
-// Move the car to where the player is now.
-export function placeCar(car: Group, p: Player): void {
+const DRIVER = 'driver';
+const WINDSHIELD = 'windshield';
+
+// Move the car to where the player is now. With the camera inside the car, its emoji driver and
+// windshield are hidden: they would block the view.
+export function placeCar(car: Group, p: Player, cameraInside: boolean): void {
   car.position.set(p.x, 0, p.y);
   car.rotation.y = -p.angle; // turning toward +y on the floor is turning the other way round the scene's up axis
+  car.getObjectByName(DRIVER)!.visible = !cameraInside;
+  car.getObjectByName(WINDSHIELD)!.visible = !cameraInside;
 }
 
 // An emoji drawn on a small transparent canvas, to show as a picture in the scene.

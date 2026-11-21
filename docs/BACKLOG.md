@@ -4,24 +4,10 @@ Ideas and known issues not dealt with yet. Each one has a short slug, so notes, 
 new sessions can name it ("backlog: i18n"). When one gets done, it becomes a step in
 [decisions.md](decisions.md) and its entry here is deleted.
 
-## chase-camera
-
-Part 2 of the move to 3D (step 17): a camera behind the car or in it, for one player first.
-Decided by the adult on 2026-11-21; how it should look is still open.
-
-- Behind the car or in the driver's seat (or both, switched by the 2D/3D button)? How far behind,
-  how high, and how quickly the camera swings round after the car turns.
-- The track was made to be seen from above: at full speed the view turns half way round in about
-  a second in the hairpin. A camera that lags a little behind the car's turns may feel calmer.
-- In the driver's seat, a drift points the camera about 44° away from where the car is going, and
-  you never see your own emoji driver.
-- Left and right no longer swap when the car drives down the screen (the downside noted in step 1).
-- The floor picture is 2 pixels per world unit (`SCENE.floorSharpness`); close to the car it may
-  look blurry and need more, which costs memory and, for lava, speed.
-
 ## split-screen
 
-Part 3 of the move to 3D: two players, each with their own chase camera, on one screen.
+Part 3 of the move to 3D: two players, each with their own chase camera, on one screen. The
+riding views exist since step 18, for racing alone; split screen would let two players use them.
 
 - Side by side matches the keyboard (P1 left, P2 right) but gives tall, narrow views (640×800 on
   a 1280×800 window); top and bottom gives wide, short ones (1280×400).
@@ -123,11 +109,11 @@ can't show 3D would be friendlier.
 
 ## real-gpu-speed
 
-Not measured yet: how fast the 3D game runs on a real computer, especially an older school
-laptop. The test browser draws in software, at about 5 fps (see step 17). Press the key left
-of 1 during a race: the debug line shows frames per second. If it's slow, things to try (none
-measured on real hardware yet): one tire per stack (`TIRES.stack`), a lower
-`SCENE.floorSharpness`, a smaller shadow map (`sun.shadow.mapSize` in `scene.ts`), and turning
-off antialiasing in `scene.ts`. `SCENE.shadowSoftness` doesn't change the cost: the shadow is
-sampled the same number of times whatever the softness. The lava floor is painted again every
-frame, which the other floors aren't.
+Measured on the adult's computer (AMD Radeon 780M) in step 18: in the driver's seat 57 to 60
+frames per second on every floor except lava, at about 8 (fixed in step 19); on grass 60 in 2D,
+3D and the driver's seat. Not measured: older
+or weaker computers, like school laptops. The debug line (key left of 1) shows frames per
+second. If it's slow, things to try (none measured yet): one tire per stack (`TIRES.stack`), a
+lower `SCENE.floorSharpness`, a smaller shadow map (`sun.shadow.mapSize` in `scene.ts`), and
+turning off antialiasing in `scene.ts`. `SCENE.shadowSoftness` doesn't change the cost: the
+shadow is sampled the same number of times whatever the softness.

@@ -151,7 +151,12 @@ function drawResult(ctx: CanvasRenderingContext2D, players: Player[], winners: P
 
 export function renderHud(ctx: CanvasRenderingContext2D, players: Player[], debug: DebugInfo | null): void {
   ctx.clearRect(0, 0, VIEW.width, VIEW.height);
+  // A soft dark edge round the text keeps it readable over the sky and the floor.
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+  ctx.shadowBlur = 4;
   drawHud(ctx, players, debug);
+  ctx.restore();
   const sign = countdownSign();
   if (sign) drawCountdown(ctx, sign);
   const winners = raceWinners();

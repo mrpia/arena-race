@@ -79,10 +79,13 @@ example prompts for two-player games in general are in arena-starter's
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
 - `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
 
-Click the 2D/3D button on the left while playing to switch between looking straight
-down (2D) and a tilted camera (3D). `CAMERA` in `config.ts` sets the view the game
-starts in, and `CAMERAS` how each view looks: how far the camera is tilted and how
-strong the perspective is. `SCENE` sets where the sun shines from, how dark the
+Click the camera button on the left (it shows the view you're in) to go through the views:
+looking straight down (2D), a tilted camera (3D), behind the cat's car (🚗), and the cat's
+driver's seat (👀). Behind the car, the camera swings round a moment after the car turns.
+The last two are for racing alone: until there's a split screen, a two-player race switches
+them to 3D. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each
+view looks: tilt and perspective, or how far behind and how high the camera rides, and how
+quickly it swings round. `SCENE` sets where the sun shines from, how dark the
 shadows are and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are.
 
 The arena fills the window: a bigger window gives the players more room. Change

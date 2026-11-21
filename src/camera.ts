@@ -1,7 +1,12 @@
-// The camera the 3D scene is seen through, aimed and zoomed so the floor fills the window.
+// The camera the 3D scene is seen through: either looking at the whole arena, aimed and zoomed so
+// the floor fills the window, or riding along with a car.
 // In the scene, a spot (x, y) on the floor is (x, 0, y), and height above the floor is the y axis.
 import { type Camera, OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
 import { ARENA, ARENA_MIN, CAMERA, CAMERAS, type CameraName, PIXELS_PER_UNIT, SCENE, VIEW } from './config';
+import type { Player } from './player';
+
+type View = (typeof CAMERAS)[CameraName];
+type RideAlong = Extract<View, { behind: number }>;
 
 // Where the floor sits on screen.
 const FLOOR_TOP = 110; // room for the HUD above
@@ -18,20 +23,62 @@ let roomH = 1;
 let name: CameraName = CAMERA;
 const flat = new OrthographicCamera();
 const deep = new PerspectiveCamera();
+const chase = new PerspectiveCamera();
+
+// The car the camera rides along with, and which way the camera looks (it lags behind the car's turns).
+let followed: Player | null = null;
+let heading = 0;
 
 export function setCamera(next: CameraName): void {
   name = next;
+  followed = null; // the next followCar() starts right behind the car instead of swinging round
   aim();
 }
 
-// The current view's settings, for drawing things that look different in 2D and 3D.
-export function currentCamera(): (typeof CAMERAS)[CameraName] {
+// The current view's settings, for drawing things that look different in each view.
+export function currentCamera(): View {
   return CAMERAS[name];
+}
+
+// Does this view ride along with a car, rather than look at the whole arena?
+export function ridesAlong(view: View): view is RideAlong {
+  return 'behind' in view;
 }
 
 // The three.js camera to draw the scene with.
 export function sceneCamera(): Camera {
-  return CAMERAS[name].fov > 0 ? deep : flat;
+  const view = CAMERAS[name];
+  if (ridesAlong(view)) return chase;
+  return view.fov > 0 ? deep : flat;
+}
+
+// The car the camera is riding along with right now, if any.
+export function followedCar(): Player | null {
+  return ridesAlong(CAMERAS[name]) ? followed : null;
+}
+
+// Once per frame: put the riding-along camera behind the car. dt = seconds since the last frame.
+export function followCar(car: Player | undefined, dt: number): void {
+  const view = CAMERAS[name];
+  if (!ridesAlong(view) || !car) return;
+  // A new car (a new race, or a new view) gets the camera straight behind it; after that the
+  // camera turns toward where the car's nose points, taking about `swing` seconds to catch up.
+  if (car !== followed || view.swing <= 0) heading = car.angle;
+  else {
+    const off = Math.atan2(Math.sin(car.angle - heading), Math.cos(car.angle - heading));
+    heading += off * (1 - Math.exp(-dt / view.swing));
+  }
+  followed = car;
+  const dx = Math.cos(heading);
+  const dy = Math.sin(heading);
+  chase.fov = view.fov;
+  chase.aspect = VIEW.width / VIEW.height;
+  chase.near = 1;
+  chase.far = 3 * Math.hypot(ARENA.width, ARENA.height);
+  chase.updateProjectionMatrix();
+  chase.position.set(car.x - dx * view.behind, view.height, car.y - dy * view.behind);
+  chase.up.set(0, 1, 0);
+  chase.lookAt(car.x + dx * view.lookAhead, 0, car.y + dy * view.lookAhead);
 }
 
 // Fit the screen to a new window size and grow or shrink the arena to fill it.
@@ -48,7 +95,9 @@ export function fitToScreen(width: number, height: number): void {
 // Point the camera at the middle of the floor, then zoom until the floor (with its front side)
 // just fits between the HUD and the bottom of the window, and center it there.
 function aim(): void {
-  const { tilt, fov } = CAMERAS[name];
+  const view = CAMERAS[name];
+  if (ridesAlong(view)) return; // followCar() aims it, every frame
+  const { tilt, fov } = view;
   const W = ARENA.width;
   const H = ARENA.height;
   const T = SCENE.floorThickness;
