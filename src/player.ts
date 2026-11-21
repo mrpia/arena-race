@@ -32,6 +32,9 @@ export class Player {
   vy = 0;
   radius = PLAYER_RADIUS;
   bouncing = 0; // seconds left sliding back after hitting the tires
+  // Which way the 3D car's front wheels point (cars.ts): -1 = all the way left, 1 = all the way right.
+  // It follows the steering keys, swinging over in about CAR.steer.time.
+  wheelTurn = 0;
   // Stretches of track driven through in order (see race.ts). Cars start just behind the
   // start/finish line, so crossing it for the first time brings this to 0: the first lap begins.
   sectorsPassed = -1;
@@ -62,6 +65,7 @@ export class Player {
     const steer = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0);
     const turnSpeed = drifting ? DRIFT.turnSpeed : TURN_SPEED;
     this.angle += steer * ((turnSpeed * Math.PI) / 180) * dt;
+    this.wheelTurn += (steer - this.wheelTurn) * (1 - Math.exp(-dt / CAR.steer.time));
 
     // There's no gas pedal: the car always drives at PLAYER_SPEED, unless it's braking or on the grass.
     // What counts for the grass is the spot under the middle of the car.

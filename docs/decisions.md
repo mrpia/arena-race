@@ -526,3 +526,26 @@ button.
   script stepping 2D, 3D, 🚗, 👀 with K.
 - Not checked: speed. Nothing that is drawn changed, and while testing, another session's test
   browser was drawing in software and pulled every view down alike (see dev-notes.md).
+
+## 26. The front wheels steer (2026-11-21)
+
+**Asked (by the adult):** the car felt static in the riding views, and you didn't see the front
+wheels turn (`driving-feel` in the backlog, ideas in `driving-feel.md`). Built in a worktree, for a
+pull request.
+
+- Defaults, not choices: "turning" read as steering, not rolling (rolling wheels stay in
+  `driving-feel.md`). The front wheels follow the steering keys at one fixed angle, 25°
+  (`CAR.steer.angle`), rather than an angle worked out from the turning circle (about 23° for a
+  normal turn, 40° braking or drifting). They turn the same way while drifting, with no
+  countersteering, so they always match the key that's held.
+- Steering is on or off, so the wheels would snap. They swing over in about 0.06 s instead
+  (`CAR.steer.time`).
+- Only a look: the turning circle, the balance between the players and the records stay the same.
+  How far the wheels are turned lives on the player (`wheelTurn`, updated with the physics), so it
+  stands still while paused and starts straight in each race; `cars.ts` turns the wheels.
+- Checked: typecheck; the wheels' angles read from the 3D scene (25° right, straight again, 25°
+  left; back wheels never) and a close-up from above; all four views while steering. In the
+  driver's seat you see both front wheels turn in the bottom corners of a full window. In split
+  screen they're out of sight (each half is too narrow): only the nose shows. Behind the car they
+  show, but the turn is hard to make out while the camera swings round.
+- Not checked: how it feels to the kids, and whether 25° is enough to notice behind the car.

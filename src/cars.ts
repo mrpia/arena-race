@@ -49,16 +49,18 @@ export function buildCar(config: PlayerConfig): Group {
   const body = new Mesh(bodyShape, new MeshPhongMaterial({ color: config.color, shininess: 60, specular: 0x333333 }));
   car.add(body);
 
-  // Four wheels, poking out a little at the sides.
+  // Four wheels, poking out a little at the sides. The front ones turn with the steering (placeCar).
   const { radius, width } = CAR.wheel;
   const wheelShape = new CylinderGeometry(radius, radius, width, 18);
   wheelShape.rotateX(Math.PI / 2); // axle across the car
   const rubber = new MeshLambertMaterial({ color: CAR.colors.wheels });
+  const frontWheels: Mesh[] = [];
   for (const forward of [-L * CAR.axles.back, L * CAR.axles.front]) {
     for (const side of [-W, W]) {
       const wheel = new Mesh(wheelShape, rubber);
       wheel.position.set(forward, radius, side);
       car.add(wheel);
+      if (forward > 0) frontWheels.push(wheel);
     }
   }
 
@@ -100,8 +102,12 @@ export function buildCar(config: PlayerConfig): Group {
   // The driver and the windshield go on a layer of their own, so the camera in the driver's seat
   // can leave them out (camera.ts) while every other camera still sees them.
   for (const part of [windshield, helmet, visor]) part.layers.set(carLayer(config));
+  movingParts.set(car, { frontWheels });
   return car;
 }
+
+// The parts of each car that move on their own, for placeCar().
+const movingParts = new WeakMap<Group, { frontWheels: Mesh[] }>();
 
 // The layer of this player's driver and windshield: 1 for player 1, 2 for player 2. Layer 0 has
 // everything else.
@@ -109,9 +115,13 @@ export function carLayer(config: PlayerConfig): number {
   return 1 + Math.max(0, PLAYERS.indexOf(config));
 }
 
-// Move the car to where the player is now.
+// Move the car to where the player is now, and point its front wheels where it steers.
 export function placeCar(car: Group, p: Player): void {
   car.position.set(p.x, 0, p.y);
   car.rotation.y = -p.angle; // turning toward +y on the floor is turning the other way round the scene's up axis
+  const parts = movingParts.get(car);
+  if (!parts) return;
+  const steer = -p.wheelTurn * ((CAR.steer.angle * Math.PI) / 180); // the same way round as the car itself
+  for (const wheel of parts.frontWheels) wheel.rotation.y = steer;
 }
 

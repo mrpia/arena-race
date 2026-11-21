@@ -9,18 +9,17 @@ car, 👀 driver's seat), and you don't see the front wheels turn.
 
 ## What the 3D car does today
 
-- `buildCar()` in `cars.ts` makes the car one stiff group, and `placeCar()` only moves it and
-  turns it round its up axis. Nothing on the car moves by itself: the front wheels don't steer,
+- `buildCar()` in `cars.ts` makes the car one stiff group, and `placeCar()` moves it and turns it
+  round its up axis. Since step 26 the front wheels steer; nothing else on the car moves by itself:
   the wheels don't roll, the body doesn't lean.
 - The wheels are plain black cylinders, so even rolling wheels wouldn't show. A lighter hub or a
   stripe on the side would.
-- Driver's seat: step 18 says you see the nose and the front wheels. The front wheels are about
-  16 units ahead of the camera and 16 to the side. By calculation (not checked in the browser)
-  they show in the bottom corners of a full 1280×800 window, but fall outside each half in split
-  screen, which is only half as wide (step 21). So in a two-player race, turning wheels wouldn't
-  show from the driver's seat, but the nose would, and so would a leaning body.
-- Behind the car (140 back, 65 high), the wheels poke out beside the body, so turning front wheels
-  should show. Not checked.
+- Driver's seat: the front wheels are about 16 units ahead of the camera and 16 to the side. In a
+  full 1280×800 window they show in the bottom corners, but each half in split screen (step 21) is
+  too narrow and only the nose shows (both seen in the browser in step 26). So in a two-player
+  race the steering wheels don't show from the driver's seat, but a leaning body would.
+- Behind the car (140 back, 65 high), the front wheels show beside the body, but their turn is hard
+  to make out while the camera swings round (step 26).
 
 ## How driving works today
 
@@ -40,11 +39,6 @@ In `Player.update` in `player.ts`:
 
 Driving, the balance between the players and the records all stay the same.
 
-- **Steering front wheels**: they turn with the steering keys. Steering is on or off, so the
-  wheels should swing over in about 0.1 s, or they snap. A real car with 34.5 units between its
-  axles would need about 23° for today's normal turning circle (radius 81) and about 40° for
-  braking or drifting (radius 40). One fixed angle in `config.ts` is simpler. While drifting, a
-  real driver turns the wheels the other way (countersteering); the kids may not mind.
 - **Rolling wheels**: they need a mark to show it (see above). At 260 units/s a wheel of radius 7
   turns about 6 times a second, 35° per frame at 60 fps. A hub with more than four spokes can
   then look like it spins backwards.
@@ -60,7 +54,7 @@ Driving, the balance between the players and the records all stay the same.
 ## Ideas that change how the car drives
 
 - **Steering ramp**: steering builds up over about 0.15 s and lets go the same way. A tap makes
-  a small correction; it can also feel slow to react. Goes well with steering front wheels.
+  a small correction; it can also feel slow to react.
 - **Soft grazes**: the bounce lasts longer the harder the car hits, so a graze costs little.
 - **Split grip**: forward speed and sideways slide get a number each. Then the car can pick up
   speed slowly after a crash, the grass can slow it gently, and normal turns can slide less,

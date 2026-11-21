@@ -156,3 +156,8 @@ is in world units.
   `firebase login --no-localhost` is interactive: the adult runs it in their own terminal.
 - Firebase Hosting gives `index.html` `max-age=3600` unless `firebase.json` says otherwise
   (found in math-quizz, its commit `47fef35`). That's why `/` and `/index.html` are `no-cache`.
+- In a worktree (`.claude/worktrees/<name>`) there's no `node_modules`, and none is needed: Node,
+  `tsc` and `npx vite` find the main checkout's, a few folders up. Give its dev server a port of
+  its own (`npx vite --port 5288 --strictPort`), since another session may hold the usual ones.
+- From a worktree, the Playwright MCP still saves screenshots in the main checkout's
+  `.playwright-mcp/`, next to other sessions' files. Give yours a prefix and delete only those.

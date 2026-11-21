@@ -122,6 +122,11 @@ export const CAR = {
   helmetSize: 0.45, // the driver's helmet, compared to the car's width
   // Where the wheels sit, measured from the middle as a share of half the car's length.
   axles: { front: 0.55, back: 0.6 },
+  // The front wheels turn with the steering keys. Only a look: the turning circle stays TURN_SPEED's.
+  steer: {
+    angle: 25, // degrees the front wheels turn while steering
+    time: 0.06, // about how many seconds they take to swing over (0 = at once)
+  },
   colors: {
     wheels: '#1e1e1e',
     windshield: 'rgba(25,35,55,0.75)',
