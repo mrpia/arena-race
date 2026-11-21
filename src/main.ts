@@ -1,7 +1,7 @@
 import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
-import { fitToScreen, followCar, ridesAlong, setCamera } from './camera';
+import { fitToScreen, followCars, setCamera } from './camera';
 import { setFloor } from './floors';
 import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
 import { renderHud } from './hud';
@@ -51,18 +51,9 @@ function showCamera(name: CameraName): void {
   cameraButton.textContent = CAMERAS[name].name;
   cameraButton.title = `Camera: ${CAMERAS[name].name} (click to switch)`;
 }
-// Until there's a split screen, the views that ride along with a car are only for racing alone:
-// in a two-player race they would show the road ahead to player 1 only.
-function cameraAllowed(name: CameraName): boolean {
-  const twoRacing = players.length === 2 && (racePhase() === 'countdown' || racePhase() === 'racing');
-  return !(twoRacing && ridesAlong(CAMERAS[name]));
-}
 cameraButton.addEventListener('click', () => {
   const names = Object.keys(CAMERAS) as CameraName[];
-  let i = names.indexOf(cameraName);
-  do i = (i + 1) % names.length;
-  while (!cameraAllowed(names[i]));
-  showCamera(names[i]);
+  showCamera(names[(names.indexOf(cameraName) + 1) % names.length]);
   // Let go of focus, or Space (a player's drift key) would click it again.
   cameraButton.blur();
 });
@@ -129,7 +120,6 @@ for (const [id, count, label] of startChoices) {
   button.addEventListener('click', () => {
     placeCarsAtStart(count);
     startCountdown();
-    if (!cameraAllowed(cameraName)) showCamera('3d');
     startButtons.hidden = true;
     // Let go of focus, or Space (a player's drift key) would click it again.
     button.blur();
@@ -188,7 +178,7 @@ function frame(now: number): void {
     update(STEP);
     acc -= STEP;
   }
-  followCar(players[0], dt);
+  followCars(players, dt);
   renderScene(players);
   renderHud(ctx, players, showKeys ? { keys: heldKeys(), fps } : null);
   requestAnimationFrame(frame);

@@ -4,16 +4,14 @@ Ideas and known issues not dealt with yet. Each one has a short slug, so notes, 
 new sessions can name it ("backlog: i18n"). When one gets done, it becomes a step in
 [decisions.md](decisions.md) and its entry here is deleted.
 
-## split-screen
+## track-map
 
-Part 3 of the move to 3D: two players, each with their own chase camera, on one screen. The
-riding views exist since step 18, for racing alone; split screen would let two players use them.
+A small map of the whole track in split screen (step 21), with both cars on it. Each player only
+sees their own half: not the whole track, and the other car only when it's close. Raised in
+step 21, not asked for yet.
 
-- Side by side matches the keyboard (P1 left, P2 right) but gives tall, narrow views (640×800 on
-  a 1280×800 window); top and bottom gives wide, short ones (1280×400).
-- Each player only sees their own half, not the other car or the whole track. A small map of the
-  track might help, as a separate step.
-- The scene is drawn twice per frame; the shadows can be shared.
+- To decide: where it goes (in the middle over the line between the halves, or one per half) and
+  how big. In the middle it covers the inside edge of both halves equally.
 
 ## turbo
 
@@ -89,6 +87,13 @@ once `touch-controls` lets someone play on a phone. The GitHub icon in the middl
 line (step 14) runs into the lap counters sooner: below about 643 px with two players and
 the default names, earlier with longer names.
 
+## split-buttons
+
+Known issue since step 21: in split screen, the camera and floor buttons on the left lie over
+player 1's half, about 36 pixels in from the left edge at mid-height. Player 2's half has nothing
+on it. Small, but `CLAUDE.md` asks for both players to be equally strong. Possible fixes: hide the
+left column during a two-player race, or move it to the middle line.
+
 ## narrow-windows
 
 Known issue, measured in step 15:
@@ -110,7 +115,8 @@ can't show 3D would be friendlier.
 ## real-gpu-speed
 
 Measured on the adult's computer (AMD Radeon 780M): in the driver's seat 57 to 60 frames per
-second on every floor (step 18; lava since step 19); on grass and lava 60 in 2D and 3D. Not measured: older
+second on every floor (step 18; lava since step 19); on grass and lava 60 in 2D and 3D; in split
+screen 60 in both riding views on every floor (step 21). Not measured: older
 or weaker computers, like school laptops. The debug line (key left of 1) shows frames per
 second. If it's slow, things to try (none measured yet): one tire per stack (`TIRES.stack`), a
 lower `SCENE.floorSharpness`, a smaller shadow map (`sun.shadow.mapSize` in `scene.ts`), and

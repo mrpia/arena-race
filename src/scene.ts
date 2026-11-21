@@ -1,5 +1,6 @@
 // The 3D scene: the floor with the track painted on it, the tire walls, the cars, the skid marks,
-// and the sun that throws the shadows. camera.ts says where the scene is seen from.
+// and the sun that throws the shadows. camera.ts says where the scene is seen from, and which part
+// of the screen each camera fills.
 // A spot (x, y) on the floor is (x, 0, y) in the scene; height above the floor is the scene's y axis.
 import {
   AmbientLight,
@@ -24,7 +25,7 @@ import {
   TorusGeometry,
   WebGLRenderer,
 } from 'three';
-import { currentCamera, followedCar, ridesAlong, sceneCamera } from './camera';
+import { currentCamera, ridesAlong, screenParts } from './camera';
 import { buildCar, placeCar } from './cars';
 import { ARENA, COLORS, type PlayerConfig, SCENE, SKID_MARKS, TIRES, VIEW } from './config';
 import { cssColor } from './cssColor';
@@ -36,6 +37,8 @@ import { getTrack, type Track } from './track';
 const renderer = new WebGLRenderer({ canvas: document.querySelector<HTMLCanvasElement>('#scene')!, antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFShadowMap;
+// The shadows are worked out once per frame, even when the scene is drawn twice (split screen).
+renderer.shadowMap.autoUpdate = false;
 
 const scene = new Scene();
 
@@ -47,6 +50,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.bias = -0.0005;
 sun.shadow.normalBias = 0.3;
+sun.shadow.camera.layers.enableAll(); // every car's driver and windshield throws a shadow, even when a camera leaves them out
 scene.add(sky, sun, sun.target);
 
 // The floor: a slab, with the floor picture (floor plus track) laid on top.
@@ -201,12 +205,7 @@ export function renderScene(players: readonly Player[]): void {
   floorPaint.emissiveIntensity = floorPulse(performance.now() / 1000);
   updateSkidMarks();
 
-  // Riding along with a car, there's sky behind the arena; looking at the whole arena, the page's color.
-  const view = currentCamera();
-  renderer.setClearColor(ridesAlong(view) ? SCENE.sky : COLORS.background);
-
   // Each player keeps the same car from race to race; cars of players not racing are hidden.
-  const sittingIn = ridesAlong(view) && view.inside ? followedCar() : null;
   for (const car of cars.values()) car.visible = false;
   for (const p of players) {
     let car = cars.get(p.config);
@@ -216,8 +215,25 @@ export function renderScene(players: readonly Player[]): void {
       scene.add(car);
     }
     car.visible = true;
-    placeCar(car, p, p === sittingIn);
+    placeCar(car, p);
   }
 
-  renderer.render(scene, sceneCamera());
+  // One camera fills the screen, or with a split screen, two cameras each fill half of it. The
+  // line between the halves is the page's color. Riding along with a car, there's sky behind the
+  // arena; looking at the whole arena, the page's color.
+  const parts = screenParts(players.length);
+  const split = parts.length > 1;
+  renderer.shadowMap.needsUpdate = true;
+  renderer.setScissorTest(false);
+  if (split) {
+    renderer.setClearColor(COLORS.background);
+    renderer.clear();
+  }
+  renderer.setClearColor(ridesAlong(currentCamera()) ? SCENE.sky : COLORS.background);
+  renderer.setScissorTest(split);
+  for (const part of parts) {
+    renderer.setViewport(part.x, 0, part.width, VIEW.height);
+    renderer.setScissor(part.x, 0, part.width, VIEW.height);
+    renderer.render(scene, part.camera);
+  }
 }

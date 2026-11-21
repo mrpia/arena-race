@@ -1,8 +1,10 @@
-// The camera the 3D scene is seen through: either looking at the whole arena, aimed and zoomed so
-// the floor fills the window, or riding along with a car.
+// The cameras the 3D scene is seen through: one looking at the whole arena, aimed and zoomed so the
+// floor fills the window, or one riding along with each car. Riding along with two cars, the screen
+// is split: player 1's car on the left half, player 2's on the right.
 // In the scene, a spot (x, y) on the floor is (x, 0, y), and height above the floor is the y axis.
 import { type Camera, OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
-import { ARENA, ARENA_MIN, CAMERA, CAMERAS, type CameraName, PIXELS_PER_UNIT, SCENE, VIEW } from './config';
+import { carLayer } from './cars';
+import { ARENA, ARENA_MIN, CAMERA, CAMERAS, type CameraName, PIXELS_PER_UNIT, SCENE, SPLIT_SCREEN, VIEW } from './config';
 import type { Player } from './player';
 
 type View = (typeof CAMERAS)[CameraName];
@@ -23,15 +25,22 @@ let roomH = 1;
 let name: CameraName = CAMERA;
 const flat = new OrthographicCamera();
 const deep = new PerspectiveCamera();
-const chase = new PerspectiveCamera();
+// The overviews see every car's driver and windshield, which cars.ts puts on layers of their own.
+flat.layers.enableAll();
+deep.layers.enableAll();
 
-// The car the camera rides along with, and which way the camera looks (it lags behind the car's turns).
-let followed: Player | null = null;
-let heading = 0;
+// A camera riding along with one car: the car, and which way the camera looks (it lags behind the
+// car's turns). The first one rides with player 1's car, the second with player 2's.
+interface Rider {
+  camera: PerspectiveCamera;
+  car: Player | null;
+  heading: number;
+}
+const riders: Rider[] = [0, 1].map(() => ({ camera: new PerspectiveCamera(), car: null, heading: 0 }));
 
 export function setCamera(next: CameraName): void {
   name = next;
-  followed = null; // the next followCar() starts right behind the car instead of swinging round
+  for (const rider of riders) rider.car = null; // the next followCars() starts right behind each car instead of swinging round
   aim();
 }
 
@@ -45,40 +54,59 @@ export function ridesAlong(view: View): view is RideAlong {
   return 'behind' in view;
 }
 
-// The three.js camera to draw the scene with.
-export function sceneCamera(): Camera {
-  const view = CAMERAS[name];
-  if (ridesAlong(view)) return chase;
-  return view.fov > 0 ? deep : flat;
+// A part of the screen and the camera that fills it. x and width are in screen pixels.
+export interface ScreenPart {
+  camera: Camera;
+  x: number;
+  width: number;
 }
 
-// The car the camera is riding along with right now, if any.
-export function followedCar(): Player | null {
-  return ridesAlong(CAMERAS[name]) ? followed : null;
+// Where the scene goes on screen, with this many cars in the game. Looking at the whole arena, or
+// riding along with one car, one camera fills the screen. Riding along with two cars, each gets
+// half, with a line SPLIT_SCREEN.gap pixels wide between them.
+export function screenParts(cars: number): ScreenPart[] {
+  const view = CAMERAS[name];
+  if (!ridesAlong(view)) return [{ camera: view.fov > 0 ? deep : flat, x: 0, width: VIEW.width }];
+  if (cars < 2) return [{ camera: riders[0].camera, x: 0, width: VIEW.width }];
+  const half = Math.max(1, Math.floor((VIEW.width - SPLIT_SCREEN.gap) / 2));
+  return [
+    { camera: riders[0].camera, x: 0, width: half },
+    { camera: riders[1].camera, x: VIEW.width - half, width: half },
+  ];
 }
 
-// Once per frame: put the riding-along camera behind the car. dt = seconds since the last frame.
-export function followCar(car: Player | undefined, dt: number): void {
+// Once per frame: put each riding-along camera behind its car. dt = seconds since the last frame.
+export function followCars(cars: readonly Player[], dt: number): void {
   const view = CAMERAS[name];
-  if (!ridesAlong(view) || !car) return;
+  if (!ridesAlong(view)) return;
+  screenParts(cars.length).forEach((part, i) => {
+    if (cars[i]) follow(riders[i], cars[i], view, part.width / VIEW.height, dt);
+  });
+}
+
+function follow(rider: Rider, car: Player, view: RideAlong, aspect: number, dt: number): void {
   // A new car (a new race, or a new view) gets the camera straight behind it; after that the
   // camera turns toward where the car's nose points, taking about `swing` seconds to catch up.
-  if (car !== followed || view.swing <= 0) heading = car.angle;
+  if (car !== rider.car || view.swing <= 0) rider.heading = car.angle;
   else {
-    const off = Math.atan2(Math.sin(car.angle - heading), Math.cos(car.angle - heading));
-    heading += off * (1 - Math.exp(-dt / view.swing));
+    const off = Math.atan2(Math.sin(car.angle - rider.heading), Math.cos(car.angle - rider.heading));
+    rider.heading += off * (1 - Math.exp(-dt / view.swing));
   }
-  followed = car;
-  const dx = Math.cos(heading);
-  const dy = Math.sin(heading);
-  chase.fov = view.fov;
-  chase.aspect = VIEW.width / VIEW.height;
-  chase.near = 1;
-  chase.far = 3 * Math.hypot(ARENA.width, ARENA.height);
-  chase.updateProjectionMatrix();
-  chase.position.set(car.x - dx * view.behind, view.height, car.y - dy * view.behind);
-  chase.up.set(0, 1, 0);
-  chase.lookAt(car.x + dx * view.lookAhead, 0, car.y + dy * view.lookAhead);
+  rider.car = car;
+  const dx = Math.cos(rider.heading);
+  const dy = Math.sin(rider.heading);
+  const camera = rider.camera;
+  camera.fov = view.fov;
+  camera.aspect = aspect;
+  camera.near = 1;
+  camera.far = 3 * Math.hypot(ARENA.width, ARENA.height);
+  camera.updateProjectionMatrix();
+  // Sitting in the car, the camera doesn't see the car's own driver and windshield: they would block the view.
+  camera.layers.enableAll();
+  if (view.inside) camera.layers.disable(carLayer(car.config));
+  camera.position.set(car.x - dx * view.behind, view.height, car.y - dy * view.behind);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(car.x + dx * view.lookAhead, 0, car.y + dy * view.lookAhead);
 }
 
 // Fit the screen to a new window size and grow or shrink the arena to fill it.
@@ -96,7 +124,7 @@ export function fitToScreen(width: number, height: number): void {
 // just fits between the HUD and the bottom of the window, and center it there.
 function aim(): void {
   const view = CAMERAS[name];
-  if (ridesAlong(view)) return; // followCar() aims it, every frame
+  if (ridesAlong(view)) return; // followCars() aims them, every frame
   const { tilt, fov } = view;
   const W = ARENA.width;
   const H = ARENA.height;

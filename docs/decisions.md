@@ -387,3 +387,40 @@ with shadows and 3D cars, and then a behind-car or in-car camera with split scre
   the page, recipe in dev-notes.md). On the adult's graphics card 60 fps in every view, the same
   as the step before.
 - Not checked: what the kids think of losing their animals in the cars.
+
+## 21. Split screen, part 3 of 3 (2026-11-21)
+
+**Asked (by the adult):** part 3 of the move to 3D (step 17): two players, each with their own
+riding-along view, on one screen.
+
+- Two choices, decided by the adult. Layout: side by side, player 1 on the left and player 2 on
+  the right (rather than one above the other). It matches where the kids sit and which keys they
+  use, and the HUD stays where it was. Views: one camera button for both halves (rather than each
+  player switching their own half). The adult also asked for J/K keys to switch views outside a
+  race, and the four views as buttons next to the start buttons: that is step 22.
+- In 🚗 and 👀 with two cars in the game, each half has its own camera following its own car and
+  swinging round on its own. A line `SPLIT_SCREEN.gap` (4) pixels wide, in the page's color,
+  separates the halves; at 1280×800 each half is 638×800. Racing alone, the riding views fill the
+  screen as before. 2D and 3D stay one view of the whole arena.
+- The rule from step 18 is gone: a two-player race no longer switches 🚗 and 👀 to 3D, and the
+  camera button goes through all four views at any time.
+- Each half keeps the view's `fov`, which is measured top to bottom: the car looks as big as
+  before, but a half shows less to the sides than the whole screen did.
+- The scene is drawn twice per frame, once per half. The shadows are worked out once, before the
+  first half (`shadowMap.autoUpdate` off). In the driver's seat each half leaves out only its own
+  car's helmet and windshield: they sit on a layer of their own (1 for player 1, 2 for player 2),
+  and that driver's-seat camera doesn't look at that layer. Hiding them (`visible`) would also have
+  taken their shadows out of the shared shadow picture, so the other half would have missed them.
+- Countdown, winner's line and start buttons stay in the middle, over the line between the halves.
+- Said before building: each player sees only their own half, so not the whole track, and the
+  other car only when it's close. Only the lap counters tell who leads. A map of the track would
+  be its own step (`track-map` in the backlog).
+- Known: the camera and floor buttons on the left lie over player 1's half; player 2's half has
+  nothing on it (`split-buttons` in the backlog).
+- Measured on the adult's graphics card with both halves riding along: 60 fps in 🚗 and 👀 on
+  every floor, and in 👀 on lava also at 1.5 and 2 times the pixel density (HiDPI screens).
+- Checked: typecheck; all four views with two cars on the grid; a two-player race in 🚗
+  (countdown, each half following its car through opposite turns, the result); racing alone in 🚗
+  fills the screen; lava in 👀.
+- Not checked: how the narrow halves feel when the kids race, and whether corners come into view
+  too late. A bigger `fov` in `CAMERAS` shows more.

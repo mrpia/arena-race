@@ -37,8 +37,8 @@ export const PIXELS_PER_UNIT = 1.2;
 //   tilt: 0 = looking straight down, 90 = looking along the floor from its near edge.
 //   fov 0 = no perspective at all: far things look as big as near ones.
 //
-// The others ride along with player 1's car. Until there's a split screen, they're only for racing
-// alone: when two players start a race, the game switches to 3D.
+// The others ride along with the car. With two cars the screen is split (SPLIT_SCREEN): player 1's
+// car on the left half, player 2's on the right, each with its own camera.
 //   behind: how far behind the middle of the car the camera is (below 0 = in front of the middle)
 //   height: how high above the floor the camera is
 //   lookAhead: the camera looks at the floor this far in front of the car
@@ -52,6 +52,11 @@ export const CAMERAS = {
 };
 export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
+
+// Two cars riding along: each player gets half the screen, side by side.
+export const SPLIT_SCREEN = {
+  gap: 4, // the line between the two halves, in screen pixels (it has the page's color, COLORS.background)
+};
 
 // The 3D scene: the sun, its shadows, and the floor everything stands on.
 export const SCENE = {

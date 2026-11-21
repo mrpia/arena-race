@@ -38,7 +38,9 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   is what you get without `GALLIUM_DRIVER`. Count `requestAnimationFrame` calls over 3 s per view
   and per floor, after waiting a few seconds (choosing a floor paints its pictures once). Numbers:
   57 to 60 fps in the driver's seat on every floor (step 18; lava 7.9 until step 19, 59 after);
-  60 in 2D and 3D on grass and lava. The first measurement after starting the browser sometimes
+  60 in 2D and 3D on grass and lava. Split screen (step 21; the page starts with two cars on the
+  grid, so the riding views are split): 60 in both riding views on every floor, and at
+  `deviceScaleFactor` 1.5 and 2. The first measurement after starting the browser sometimes
   comes out around 50, even on grass.
 - Close the Playwright MCP browser before measuring on the real card. With it open (drawing in
   software, plus a test render loop), every view on the real card measured 30 fps; closed, 60
@@ -49,7 +51,8 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   Then import three.js from the URL the page loaded, make a `PerspectiveCamera`, and call
   `renderer.render(scene, camera)` in a `requestAnimationFrame` loop started from
   `page.evaluate`: it runs after the game's own frame, so the screenshot shows your camera. Cars
-  are the scene's children that have a child named `driver`.
+  are the scene's `Group` children. Turn on all layers on your camera (`layers.enableAll()`), or
+  it misses the drivers and windshields (layers 1 and 2, step 21).
 - To find what a frame spends its time on, take a CPU profile through a CDP session
   (`Profiler.start`, wait, `Profiler.stop`) and add up self time per function. In step 17,
   JavaScript was about 1% and "(program)" the rest: waiting for the software renderer.
@@ -88,9 +91,16 @@ is in world units.
 - The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:
   `index.html` and one JS file. Before three.js (step 17) it was about 12 kB.
 - The 3D scene at 1280×800: 348 tires, 696 rings stacked two high, about 118,000 triangles and
-  21 draw calls per frame, plus the same again for the shadows.
+  21 draw calls per frame, plus the same again for the shadows. In split screen the scene is drawn
+  twice per frame and the shadows once.
 
 ## Traps we hit
+
+- three.js draws the shadow picture during the first `render()` of a frame (split screen turns
+  automatic updates off and asks for one per frame). Anything hidden with `visible = false` at
+  that moment throws no shadow in either half. To leave something out of one camera only, put it
+  on its own layer and leave that layer out of the camera; the sun's shadow camera has all layers
+  on, and three.js then uses its layers instead of the viewing camera's.
 
 - Floor painters may leave glow or transparency switched on. `paintFloor()` wraps each painter
   in its own `save()`/`restore()`; keep it that way.

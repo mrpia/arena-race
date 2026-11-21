@@ -12,7 +12,7 @@ import {
   Shape,
   SphereGeometry,
 } from 'three';
-import { CAR, type PlayerConfig } from './config';
+import { CAR, PLAYERS, type PlayerConfig } from './config';
 import { cssColor } from './cssColor';
 import type { Player } from './player';
 
@@ -77,7 +77,6 @@ export function buildCar(config: PlayerConfig): Group {
     new MeshPhongMaterial({ color: glass.color, transparent: glass.opacity < 1, opacity: glass.opacity, shininess: 90 }),
   );
   windshield.position.set(L * 0.4, top + 2.5, 0);
-  windshield.name = WINDSHIELD;
   car.add(windshield);
 
   // The driver sits a bit behind the middle: a round helmet, half sunk into the car, with a dark
@@ -95,22 +94,24 @@ export function buildCar(config: PlayerConfig): Group {
   );
   driver.add(helmet, visor);
   driver.position.set(-L * 0.2, top + r * 0.5, 0);
-  driver.name = DRIVER;
   car.add(driver);
 
   car.traverse((part) => (part.castShadow = part.receiveShadow = true));
+  // The driver and the windshield go on a layer of their own, so the camera in the driver's seat
+  // can leave them out (camera.ts) while every other camera still sees them.
+  for (const part of [windshield, helmet, visor]) part.layers.set(carLayer(config));
   return car;
 }
 
-const DRIVER = 'driver';
-const WINDSHIELD = 'windshield';
+// The layer of this player's driver and windshield: 1 for player 1, 2 for player 2. Layer 0 has
+// everything else.
+export function carLayer(config: PlayerConfig): number {
+  return 1 + Math.max(0, PLAYERS.indexOf(config));
+}
 
-// Move the car to where the player is now. With the camera inside the car, its driver's helmet and
-// windshield are hidden: they would block the view.
-export function placeCar(car: Group, p: Player, cameraInside: boolean): void {
+// Move the car to where the player is now.
+export function placeCar(car: Group, p: Player): void {
   car.position.set(p.x, 0, p.y);
   car.rotation.y = -p.angle; // turning toward +y on the floor is turning the other way round the scene's up axis
-  car.getObjectByName(DRIVER)!.visible = !cameraInside;
-  car.getObjectByName(WINDSHIELD)!.visible = !cameraInside;
 }
 
