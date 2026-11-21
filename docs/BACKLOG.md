@@ -8,59 +8,12 @@ new sessions can name it ("backlog: i18n"). When one gets done, it becomes a ste
 
 A speed boost after a drift, with sparks. Discussed in step 6 (brake and drift), not chosen.
 
-## driving-physics
+## driving-feel
 
-Make the cars drive more like real cars. Added 2026-11-21 by the adult; nothing chosen yet,
-and the kids decide. In step 1 they picked a constant speed with no gas pedal because it was
-simpler, so first ask what feels wrong, then offer the ideas that fix that.
-
-How driving works today (`Player.update` in `player.ts`):
-
-- One number, `PLAYER_GRIP` (12), does three jobs: how quickly the car gets up to speed, how
-  quickly the brake and the grass slow it (full effect in about a quarter of a second), and how
-  much it slides sideways. At full lock the car always drives about 15° sideways; drifting,
-  about 44°.
-- Steering is on or off: 180°/s from the moment the key goes down, at any speed.
-- `separate()` only pushes the two cars apart. Their speed doesn't change, so they slide along
-  each other instead of bumping.
-- Any touch of a tire, even a graze, means 0.3 s of sliding back (`TIRES.bounceTime`), at the end
-  of which the car has about 30% of its speed left.
-
-Ideas, smallest first:
-
-- **Lean**: the 3D car body leans out in turns and dips its nose when braking. Only a look:
-  driving and records stay the same. Keep the driver's-seat camera level, or the view rocks.
-- **Steering ramp**: steering builds up over about 0.15 s and lets go the same way. A tap makes
-  a small correction; it can also feel slow to react.
-- **Soft grazes**: the bounce lasts longer the harder the car hits, so a graze costs little.
-- **Split grip**: forward speed and sideways slide get a number each. Then the car can pick up
-  speed slowly after a crash, the grass can slow it gently, and normal turns can slide less,
-  all without touching the drift.
-- **Car bumps**: the cars bounce off each other, both equally heavy, so it stays fair. Races
-  may turn into bumper cars.
-- **Grip limit**: at speed the tires only hold so much, and a car that turns too hard slides wide
-  by itself. The brake gets a new job (brake before the corner); kids may feel the car "doesn't
-  turn".
-- **Gas pedal**: the `up` key, unused so far. Step 1 said no. A held gas key adds one key per
-  player: up to eight held at once in two-player mode (step 6 counted six), so more keyboard
-  ghosting.
-- **Floor grip** (ice slippery off the track, and so on): a car's middle only gets about 14 units
-  onto the grass before the tires stop it, so it would hardly be felt unless the track itself
-  got slippery too.
-
-Side effects of every idea except Lean:
-
-- The corners fit today's turning circles: the tightest ones are about 45 units on the middle
-  line, and braking or drifting gets round in about 40 (`dev-notes.md`). Other steering or grip
-  can make them impossible or too easy.
-- Records are kept per window size, number of laps and track (`records.ts`), not per way of
-  driving, so old records stop being fair. Adding a version to the record key starts new ones.
-- In step 6, drifting was made about 40% faster than braking through a corner, on purpose.
-  Keep that, or let the kids decide it again.
-- Not recommended: a fully realistic car (tire slip, weight shifting from wheel to wheel). Lots
-  of numbers to tune, and with real steering the turning circle comes from the wheel angle, not
-  the speed, so braking alone no longer tightens a turn: that would take away what the brake is
-  for.
+The cars feel static in the views that ride along with them (the front wheels don't even turn),
+and they could drive more like real cars. Added 2026-11-21 by the adult as a general wish;
+nothing chosen yet. The ideas, how driving works today and the side effects are in
+[driving-feel.md](driving-feel.md).
 
 ## computer-opponent
 
