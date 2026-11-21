@@ -5,7 +5,8 @@ import type { Player } from './player';
 import { countdownSign, lapsDone, raceTime, raceWinners, soloResult } from './race';
 import { bestTime } from './records';
 
-function keyLabel(code: string): string {
+// "KeyA" -> "A", "ArrowLeft" -> "Left"
+export function keyLabel(code: string): string {
   return code.replace(/^Key/, '').replace(/^Arrow/, '');
 }
 

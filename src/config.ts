@@ -53,6 +53,11 @@ export const CAMERAS = {
 export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
 
+// Keys that switch the view for everyone, like the camera button: back and forward through CAMERAS.
+// They only work outside a race (before the start and after the finish), so nobody can switch the
+// other player's half in the middle of a race.
+export const VIEW_KEYS = { back: 'KeyJ', next: 'KeyK' };
+
 // Two cars riding along: each player gets half the screen, side by side.
 export const SPLIT_SCREEN = {
   gap: 4, // the line between the two halves, in screen pixels (it has the page's color, COLORS.background)

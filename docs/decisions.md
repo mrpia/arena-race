@@ -424,3 +424,27 @@ riding-along view, on one screen.
   fills the screen; lava in 👀.
 - Not checked: how the narrow halves feel when the kids race, and whether corners come into view
   too late. A bigger `fov` in `CAMERAS` shows more.
+
+## 22. Picking the view before the race (2026-11-21)
+
+**Asked (by the adult, with step 21):** one view for both halves, but also a way to pick it before
+starting the race, and the keys J and K to switch views, one each way.
+
+- Two follow-up questions, decided by the adult. J and K work only outside a race, before the
+  start and after the finish (rather than at any time): during a race either kid could switch
+  both halves, and J and K sit nearer player 2's hand. "Pick before starting" means the four views
+  as buttons next to the start buttons (rather than only keeping the view picked before the start,
+  which step 21 already does).
+- J goes one view back, K one forward, round and round through 2D, 3D, 🚗 and 👀, like the camera
+  button (`VIEW_KEYS` in `config.ts`). The camera button on the left still works at any time.
+- Under the start buttons a dark row shows the four views between the key caps "J" and "K". The
+  view you're in has the yellow outline the floor row uses. The row hangs below the start buttons
+  instead of joining their group: one more row in the group would have pushed the buttons up into
+  the winner's line.
+- The test-car recipe in dev-notes.md used J and K, which now switch the view; it suggests other
+  keys.
+- Checked: typecheck; J and K forward, back, and round from 2D to 👀; clicking a view in the row;
+  J and K doing nothing during the countdown and the race, and working again after the finish;
+  the row and the winner's line at 1280×800; the row at 1024×600 and 420×800 (start buttons
+  stacked).
+- Not checked: speed (nothing in the 3D scene changed), and whether the kids notice the key caps.

@@ -1,10 +1,10 @@
-import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW } from './config';
+import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PLAYERS, RACE, VIEW, VIEW_KEYS } from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, followCars, setCamera } from './camera';
 import { setFloor } from './floors';
 import { carsCanDrive, countLaps, racePhase, startCountdown, updateRace } from './race';
-import { renderHud } from './hud';
+import { keyLabel, renderHud } from './hud';
 import { renderScene, resizeScene } from './scene';
 import { clearSkidMarks, updateSkidMarks } from './skidmarks';
 
@@ -42,18 +42,48 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 
-// Camera button on the left: each click goes on to the next view in CAMERAS.
+// Camera button on the left: each click goes on to the next view in CAMERAS. The same views sit
+// in a row under the start buttons, between the keys that go back and forward (VIEW_KEYS).
 const cameraButton = document.querySelector<HTMLButtonElement>('#camera')!;
+const cameraNames = Object.keys(CAMERAS) as CameraName[];
+const viewChoices = cameraNames.map((name) => {
+  const choice = document.createElement('button');
+  choice.type = 'button';
+  choice.className = 'emoji-button';
+  choice.textContent = CAMERAS[name].name;
+  choice.title = `Camera: ${CAMERAS[name].name}`;
+  choice.addEventListener('click', () => {
+    showCamera(name);
+    // Let go of focus, or Space (a player's drift key) would click it again.
+    choice.blur();
+  });
+  return { name, choice };
+});
+function keyCap(code: string): HTMLSpanElement {
+  const cap = document.createElement('span');
+  cap.className = 'key';
+  cap.textContent = keyLabel(code);
+  return cap;
+}
+document
+  .querySelector<HTMLDivElement>('#view-choices')!
+  .append(keyCap(VIEW_KEYS.back), ...viewChoices.map((c) => c.choice), keyCap(VIEW_KEYS.next));
+
 let cameraName: CameraName = CAMERA;
 function showCamera(name: CameraName): void {
   cameraName = name;
   setCamera(name);
   cameraButton.textContent = CAMERAS[name].name;
   cameraButton.title = `Camera: ${CAMERAS[name].name} (click to switch)`;
+  for (const c of viewChoices) c.choice.classList.toggle('chosen', c.name === name);
+}
+// One view forward (1) or back (-1) in CAMERAS, round and round.
+function stepCamera(step: 1 | -1): void {
+  const i = cameraNames.indexOf(cameraName);
+  showCamera(cameraNames[(i + step + cameraNames.length) % cameraNames.length]);
 }
 cameraButton.addEventListener('click', () => {
-  const names = Object.keys(CAMERAS) as CameraName[];
-  showCamera(names[(names.indexOf(cameraName) + 1) % names.length]);
+  stepCamera(1);
   // Let go of focus, or Space (a player's drift key) would click it again.
   cameraButton.blur();
 });
@@ -134,12 +164,16 @@ keyboardHint.hidden = !matchMedia('(pointer: coarse)').matches;
 window.addEventListener('keydown', () => (keyboardHint.hidden = true), { once: true });
 
 const DEBUG_KEY = 'Backquote'; // the key left of 1 (§ on Swiss keyboards)
-initInput([...PLAYERS.flatMap((p) => Object.values(p.controls)), DEBUG_KEY]);
+initInput([...PLAYERS.flatMap((p) => Object.values(p.controls)), DEBUG_KEY, VIEW_KEYS.back, VIEW_KEYS.next]);
 
 let showKeys = false;
 
 function update(dt: number): void {
   if (wasPressed(DEBUG_KEY)) showKeys = !showKeys;
+  // Outside a race the view keys switch the view; during one they do nothing (see VIEW_KEYS).
+  const outsideRace = racePhase() === 'waiting' || racePhase() === 'finished';
+  if (outsideRace && wasPressed(VIEW_KEYS.back)) stepCamera(-1);
+  if (outsideRace && wasPressed(VIEW_KEYS.next)) stepCamera(1);
   updateRace(dt);
   updateSkidMarks(dt);
   // Before "LOS!" and after someone has won, the cars can't drive, steer, brake or drift.

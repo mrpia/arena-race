@@ -22,7 +22,8 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   Records are stored per number of laps, so read the record while `laps` is still 0.
 - To drive a test car, hold keys with `page.keyboard.down(...)`, then call
   `player.update(1 / 60)` in a loop inside `page.evaluate`. Give the test car its own keys
-  (for example KeyH, KeyL, KeyK, KeyJ) and don't start a race, so the game's own cars stay put.
+  (for example KeyH, KeyL, KeyU, KeyI; not J and K, which switch the view outside a race) and
+  don't start a race, so the game's own cars stay put.
 - To measure steering without grass or walls, set `halfWidth = 1e4` and `tires.length = 0` on
   the cached object from `getTrack()`, then reload the page afterwards. The 3D tires stay
   visible (the scene only rebuilds when the arena changes size); only the bouncing is gone.

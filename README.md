@@ -80,13 +80,16 @@ example prompts for two-player games in general are in arena-starter's
 - `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
 
 Click the camera button on the left (it shows the view you're in) to go through the views:
-looking straight down (2D), a tilted camera (3D), behind the car (🚗), and the driver's
-seat (👀). Behind the car, the camera swings round a moment after the car turns. With two
-players the last two split the screen: player 1's car on the left half, player 2's on the
-right (`SPLIT_SCREEN`). `CAMERA` in `config.ts` sets the view the game starts in, and
-`CAMERAS` how each view looks: tilt and perspective, or how far behind and how high the
-camera rides, and how quickly it swings round. `SCENE` sets where the sun shines from, how dark the
-shadows are and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are.
+looking straight down (2D), a tilted camera (3D), behind the car (🚗), and the driver's seat
+(👀). Behind the car, the camera swings round a moment after the car turns. With two players
+the last two split the screen: player 1's car on the left half, player 2's on the right
+(`SPLIT_SCREEN`). Before and after a race the same views sit in a row under the start
+buttons, and J and K go back and forward through them (`VIEW_KEYS`); during a race the two
+keys do nothing, so nobody switches the other player's half. `CAMERA` in `config.ts` sets
+the view the game starts in, and `CAMERAS` how each view looks: tilt and perspective, or how
+far behind and how high the camera rides, and how quickly it swings round. `SCENE` sets
+where the sun shines from, how dark the shadows are and how thick the floor is; `CAR` and
+`TIRES` how tall cars and tire walls are.
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.
