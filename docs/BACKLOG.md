@@ -4,6 +4,18 @@ Ideas and known issues not dealt with yet. Each one has a short slug, so notes, 
 new sessions can name it ("backlog: i18n"). When one gets done, it becomes a step in
 [decisions.md](decisions.md) and its entry here is deleted.
 
+## driver-emoji
+
+Asked by the adult on 2026-11-21: take the animal emoji drivers out of the 3D cars, they feel
+weird now. The emoji is a flat picture that always faces the camera, so from behind the car you
+look at the cat's face. The kids chose the animal drivers in step 1.
+
+- Open, for the adult: do the emoji also go from the HUD ("🐱 Player 1") and the result line
+  ("🐱 Player 1 gewinnt!"), or only from the cars? Does anything take the driver's place
+  (nothing, or a simple helmet in the player's color)?
+- Docs and comments call the players "the cat" and "the dog" in places (README intro,
+  `CAMERAS` comment, racing alone).
+
 ## split-screen
 
 Part 3 of the move to 3D: two players, each with their own chase camera, on one screen. The
