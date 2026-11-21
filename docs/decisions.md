@@ -589,3 +589,21 @@ pull request.
   per frame, before any camera draws, so both halves of the split screen show it too. From straight
   above (2D) a tilt hardly shows: 6° moves the helmet about 2 units sideways, about 3 pixels at
   1280×800 (worked out, not measured). It shows best behind the car and in the driver's seat.
+
+## 28. J and K during a race when racing alone (2026-11-21)
+
+**Asked (by the adult):** let the players switch views with J and K during the race, not only
+before and after it (step 22).
+
+- One question, decided by the adult: during a two-player race J and K stay off, as step 22 decided
+  (either kid could switch both halves, and the keys sit nearer player 2's hand). Rather than J and
+  K switching both halves in every race, or each player switching only their own half with their
+  own key.
+- Racing alone, J and K now work at any time: during the countdown, the race and the pause. The
+  camera button on the left still works in every race, as before.
+- The row with the J and K key caps still only shows before and after a race; nothing on screen
+  says the keys work during a solo race.
+- Checked: typecheck; racing alone, K and J during the countdown, the race and the pause, and again
+  after quitting; in a two-player race, J and K changing nothing during the countdown, the race and
+  the pause, and working again after quitting; switching to 🚗 and 👀 in the middle of a solo race.
+- Not checked: speed (nothing that is drawn changed).

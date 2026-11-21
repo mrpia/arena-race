@@ -242,10 +242,11 @@ let showKeys = false;
 
 function update(dt: number): void {
   if (wasPressed(DEBUG_KEY)) showKeys = !showKeys;
-  // Outside a race the view keys switch the view; during one they do nothing (see VIEW_KEYS).
+  // The view keys switch the view, except during a two-player race (see VIEW_KEYS).
   const outsideRace = racePhase() === 'waiting' || racePhase() === 'finished';
-  if (outsideRace && wasPressed(VIEW_KEYS.back)) stepCamera(-1);
-  if (outsideRace && wasPressed(VIEW_KEYS.next)) stepCamera(1);
+  const viewKeysWork = outsideRace || players.length === 1;
+  if (viewKeysWork && wasPressed(VIEW_KEYS.back)) stepCamera(-1);
+  if (viewKeysWork && wasPressed(VIEW_KEYS.next)) stepCamera(1);
   // The pause key pauses the race, and pressed again goes on.
   if (raceRunning() && wasPressed(PAUSE.key)) setPaused(!racePaused());
   if (racePaused()) {
