@@ -53,10 +53,63 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 
-// Camera button on the left: each click goes on to the next view in CAMERAS. The same views sit
-// in a row under the start buttons, between the keys that go back and forward (VIEW_KEYS).
-const cameraButton = document.querySelector<HTMLButtonElement>('#camera')!;
+// The buttons on the left, for the view and the floor: a click opens a row of every choice next
+// to the button, with the current one outlined. Picking one closes the row, and so does clicking
+// anywhere else or pressing Escape. `which` names the elements: #camera, #camera-control and
+// #camera-picker. Gives back a function that shows the current choice on the button and in the row.
+const pickerRows: HTMLDivElement[] = [];
+function sidePicker<N extends string>(
+  which: string,
+  names: N[],
+  look: (name: N) => { text: string; title: string },
+  pick: (name: N) => void,
+): (current: N, buttonTitle: string) => void {
+  const control = document.querySelector<HTMLDivElement>(`#${which}-control`)!;
+  const button = document.querySelector<HTMLButtonElement>(`#${which}`)!;
+  const row = document.querySelector<HTMLDivElement>(`#${which}-picker`)!;
+  pickerRows.push(row);
+  const choices = names.map((name) => {
+    const choice = document.createElement('button');
+    choice.type = 'button';
+    choice.className = 'emoji-button';
+    choice.textContent = look(name).text;
+    choice.title = look(name).title;
+    choice.addEventListener('click', () => {
+      pick(name);
+      row.hidden = true;
+      // Let go of focus, or Space (a player's drift key) would click it again.
+      choice.blur();
+    });
+    row.append(choice);
+    return { name, choice };
+  });
+  button.addEventListener('click', () => {
+    row.hidden = !row.hidden;
+    button.blur();
+  });
+  // A click outside closes the row; so a click on the other button closes this row as it opens its own.
+  window.addEventListener('pointerdown', (e) => {
+    if (!control.contains(e.target as Node)) row.hidden = true;
+  });
+  return (current, buttonTitle) => {
+    button.textContent = look(current).text;
+    button.title = buttonTitle;
+    for (const c of choices) c.choice.classList.toggle('chosen', c.name === current);
+  };
+}
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Escape') for (const row of pickerRows) row.hidden = true;
+});
+
+// The view: camera button on the left. The same views sit in a row under the start buttons, between
+// the keys that go back and forward (VIEW_KEYS).
 const cameraNames = Object.keys(CAMERAS) as CameraName[];
+const showCameraChoice = sidePicker(
+  'camera',
+  cameraNames,
+  (name) => ({ text: CAMERAS[name].name, title: `Camera: ${CAMERAS[name].name}` }),
+  (name) => showCamera(name),
+);
 const viewChoices = cameraNames.map((name) => {
   const choice = document.createElement('button');
   choice.type = 'button';
@@ -84,8 +137,7 @@ let cameraName: CameraName = CAMERA;
 function showCamera(name: CameraName): void {
   cameraName = name;
   setCamera(name);
-  cameraButton.textContent = CAMERAS[name].name;
-  cameraButton.title = `Camera: ${CAMERAS[name].name} (click to switch)`;
+  showCameraChoice(name, `Camera: ${CAMERAS[name].name} (click to pick another)`);
   for (const c of viewChoices) c.choice.classList.toggle('chosen', c.name === name);
 }
 // One view forward (1) or back (-1) in CAMERAS, round and round.
@@ -93,51 +145,19 @@ function stepCamera(step: 1 | -1): void {
   const i = cameraNames.indexOf(cameraName);
   showCamera(cameraNames[(i + step + cameraNames.length) % cameraNames.length]);
 }
-cameraButton.addEventListener('click', () => {
-  stepCamera(1);
-  // Let go of focus, or Space (a player's drift key) would click it again.
-  cameraButton.blur();
-});
 showCamera(CAMERA);
 
-// Floor button under the 2D/3D button: click it for a row of all floors, then pick one.
-const floorControl = document.querySelector<HTMLDivElement>('#floor-control')!;
-const floorButton = document.querySelector<HTMLButtonElement>('#floor')!;
-const floorPicker = document.querySelector<HTMLDivElement>('#floor-picker')!;
-const floorChoices = (Object.keys(FLOORS) as FloorName[]).map((name) => {
-  const choice = document.createElement('button');
-  choice.type = 'button';
-  choice.className = 'emoji-button';
-  choice.textContent = FLOORS[name].emoji;
-  choice.title = FLOORS[name].name;
-  choice.addEventListener('click', () => {
-    chooseFloor(name);
-    floorPicker.hidden = true;
-    // Let go of focus, or Space (a player's drift key) would click it again.
-    choice.blur();
-  });
-  floorPicker.append(choice);
-  return { name, choice };
-});
-
+// The floor: the button under the camera button.
+const showFloorChoice = sidePicker(
+  'floor',
+  Object.keys(FLOORS) as FloorName[],
+  (name) => ({ text: FLOORS[name].emoji, title: FLOORS[name].name }),
+  (name) => chooseFloor(name),
+);
 function chooseFloor(name: FloorName): void {
   setFloor(name);
-  floorButton.textContent = FLOORS[name].emoji;
-  floorButton.title = `Floor: ${FLOORS[name].name} (click to pick another)`;
-  for (const c of floorChoices) c.choice.classList.toggle('chosen', c.name === name);
+  showFloorChoice(name, `Floor: ${FLOORS[name].name} (click to pick another)`);
 }
-
-floorButton.addEventListener('click', () => {
-  floorPicker.hidden = !floorPicker.hidden;
-  floorButton.blur();
-});
-// Clicking anywhere else or pressing Escape closes the row without changing the floor.
-window.addEventListener('pointerdown', (e) => {
-  if (!floorControl.contains(e.target as Node)) floorPicker.hidden = true;
-});
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'Escape') floorPicker.hidden = true;
-});
 chooseFloor(FLOOR);
 
 // The GitHub icon at the top: the game's code, in a new tab so a race isn't lost.

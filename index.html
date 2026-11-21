@@ -23,14 +23,15 @@
       }
       .emoji-button:hover { background: #fff; }
       .emoji-button.chosen { outline: 3px solid #ffd43b; outline-offset: 1px; }
-      #camera { font-size: 15px; font-weight: bold; }
-      #floor-control { position: relative; }
-      #floor-picker {
+      #camera, #camera-picker .emoji-button { font-size: 15px; font-weight: bold; }
+      /* The buttons on the left each open a row of every choice to their right. */
+      .picker-control { position: relative; }
+      .picker {
         position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
         display: flex; gap: 6px; padding: 6px; border-radius: 10px;
         background: rgba(20, 24, 34, 0.92); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
       }
-      #floor-picker[hidden] { display: none; }
+      .picker[hidden] { display: none; }
       /* The GitHub icon, and in its place during a race the pause button. */
       #github, #pause {
         position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
@@ -100,10 +101,13 @@
       </div>
     </div>
     <div id="side-controls">
-      <button id="camera" class="emoji-button" type="button"></button>
-      <div id="floor-control">
+      <div id="camera-control" class="picker-control">
+        <button id="camera" class="emoji-button" type="button"></button>
+        <div id="camera-picker" class="picker" hidden></div>
+      </div>
+      <div id="floor-control" class="picker-control">
         <button id="floor" class="emoji-button" type="button"></button>
-        <div id="floor-picker" hidden></div>
+        <div id="floor-picker" class="picker" hidden></div>
       </div>
     </div>
     <div id="start-buttons">

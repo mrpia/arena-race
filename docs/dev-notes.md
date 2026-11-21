@@ -51,7 +51,11 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   pictures painted once. Why remains open: headless Chromium doesn't open `chrome://gpu`.
 - Close the Playwright MCP browser before measuring on the real card. With it open (drawing in
   software, plus a test render loop), every view on the real card measured 30 fps; closed, 60
-  (step 20).
+  (step 20). The same goes for any other browser drawing in software, like another session's
+  test browser: in step 25 one ran at 740% CPU and every view measured 40 to 44. If all views drop
+  alike, look at `ps` before blaming the change.
+- The fps scripts step through the views with K, the next-view key (it works before a race). Until
+  step 25 they clicked the camera button, which now opens a row instead.
 - To look at the scene from any angle (a car from the front, say), catch three.js' renderer and
   scene before the page loads: `page.addInitScript` that sets `window.__THREE_DEVTOOLS__` to an
   `EventTarget` and keeps the `detail` of each `observe` event (the renderer, then the scene).

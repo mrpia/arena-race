@@ -503,3 +503,26 @@ top in its place.
   "LOS!"); the button with "Weiter" and "Beenden" (cars back on the grid, clock at 0); pausing
   during the start countdown; the pause button above the map in split screen.
 - Not checked: speed (the 3D scene didn't change; the button and the menu are page elements).
+
+## 25. The camera button opens a row of views (2026-11-21)
+
+**Asked (by the adult):** let the views button on the left open all its choices, like the floor
+button.
+
+- A click on the camera button opens a row of the four views (2D, 3D, 🚗, 👀) to its right, with
+  the current one outlined; picking one switches to it and closes the row. Before, each click went
+  on to the next view.
+- Defaults, said before building: switching now takes two clicks, but goes straight to any view.
+  Only one row is open at a time: opening one closes the other. Clicking elsewhere, clicking the
+  button again or pressing Escape closes it. The button still works during a race, as before; an
+  open row lies over player 1's half until you pick (`split-buttons` in the backlog). Escape during
+  a race closes an open row and also pauses, as it already did for the floor row since step 24.
+- Both buttons share the same code now (`sidePicker()` in `main.ts`) and the same look (`.picker`
+  in `index.html`). J, K and the row under the start buttons stay in step with the button.
+- The frame-rate scripts in the handover folder clicked the camera button to step through the
+  views; they press K now.
+- Checked: typecheck; opening the row and picking a view; one row at a time; closing with Escape,
+  a click elsewhere and a second click; J/K and the start row showing the same view; the fps
+  script stepping 2D, 3D, 🚗, 👀 with K.
+- Not checked: speed. Nothing that is drawn changed, and while testing, another session's test
+  browser was drawing in software and pulled every view down alike (see dev-notes.md).
