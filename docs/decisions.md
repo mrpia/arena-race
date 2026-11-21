@@ -365,3 +365,25 @@ with shadows and 3D cars, and then a behind-car or in-car camera with split scre
 - Checked: typecheck; lava in 2D, 3D and the driver's seat looks as before; the glow doesn't
   shine through the track.
 
+## 20. A helmet instead of the animal driver (2026-11-21)
+
+**Asked (by the adult):** take the emoji drivers out of the 3D cars, they feel weird now.
+
+- The emoji was a flat picture that always turned to face the camera. From above it looked as
+  before, but in the tilted and riding views the cat looked at you from every side, even from
+  behind the car.
+- Two choices, both decided by the adult. Where: only out of the cars (rather than also out of
+  the HUD and the result line, or hidden only in the riding views). The HUD still says
+  "🐱 Player 1" and the winner's line "🐱 Player 1 gewinnt!". In the seat: a white helmet with a
+  dark visor (rather than nothing, or a helmet in a darker shade of the car's color).
+- Said before building: the kids chose the animal drivers in step 1 and weren't there for this.
+  The README and comments that called the players "the cat" and "the dog" now say player 1 and
+  player 2.
+- The helmet is a ball half sunk into the car, a bit behind the middle where the emoji sat,
+  `CAR.helmetSize` (0.45) of the car's width across. The visor is a slice of a slightly bigger
+  ball on its front, so from straight above (2D) the helmet is just a white ball. In the driver's
+  seat it's hidden, like the emoji was. `CAR.colors.helmet` and `visor` set the colors.
+- Checked: typecheck; all four views; lava; the visor seen from the front (with a test camera in
+  the page, recipe in dev-notes.md). On the adult's graphics card 60 fps in every view, the same
+  as the step before.
+- Not checked: what the kids think of losing their animals in the cars.

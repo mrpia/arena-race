@@ -1,9 +1,8 @@
 // The race cars in 3D: a body in the player's color with the same outline as before (square at the
-// back, pointy at the front), four wheels, a racing stripe, a windshield, and the player's emoji as
-// the driver. Sizes come from CAR in config.ts, in world units.
+// back, pointy at the front), four wheels, a racing stripe, a windshield, and the driver's helmet.
+// Sizes come from CAR in config.ts, in world units.
 import {
   BoxGeometry,
-  CanvasTexture,
   CylinderGeometry,
   ExtrudeGeometry,
   Group,
@@ -11,9 +10,7 @@ import {
   MeshLambertMaterial,
   MeshPhongMaterial,
   Shape,
-  Sprite,
-  SpriteMaterial,
-  SRGBColorSpace,
+  SphereGeometry,
 } from 'three';
 import { CAR, type PlayerConfig } from './config';
 import { cssColor } from './cssColor';
@@ -83,22 +80,32 @@ export function buildCar(config: PlayerConfig): Group {
   windshield.name = WINDSHIELD;
   car.add(windshield);
 
-  for (const part of car.children) part.castShadow = part.receiveShadow = true;
-
-  // The driver sits a bit behind the middle. The emoji is a flat picture that always faces the camera.
-  const size = CAR.width * CAR.driverSize;
-  const driver = new Sprite(new SpriteMaterial({ map: emojiPicture(config.emoji), alphaTest: 0.1 }));
-  driver.scale.set(size, size, 1);
-  driver.position.set(-L * 0.2, top + size * 0.3, 0);
+  // The driver sits a bit behind the middle: a round helmet, half sunk into the car, with a dark
+  // visor on the front. The visor is a slice of a slightly bigger ball, from the eyes to the chin
+  // and a third of the way round.
+  const r = (CAR.width * CAR.helmetSize) / 2;
+  const driver = new Group();
+  const helmet = new Mesh(
+    new SphereGeometry(r, 18, 12),
+    new MeshPhongMaterial({ color: CAR.colors.helmet, shininess: 80, specular: 0x444444 }),
+  );
+  const visor = new Mesh(
+    new SphereGeometry(r * 1.04, 18, 4, Math.PI - 1, 2, 1, 0.65), // phi = π faces the car's front
+    new MeshPhongMaterial({ color: CAR.colors.visor, shininess: 100, specular: 0x666666 }),
+  );
+  driver.add(helmet, visor);
+  driver.position.set(-L * 0.2, top + r * 0.5, 0);
   driver.name = DRIVER;
   car.add(driver);
+
+  car.traverse((part) => (part.castShadow = part.receiveShadow = true));
   return car;
 }
 
 const DRIVER = 'driver';
 const WINDSHIELD = 'windshield';
 
-// Move the car to where the player is now. With the camera inside the car, its emoji driver and
+// Move the car to where the player is now. With the camera inside the car, its driver's helmet and
 // windshield are hidden: they would block the view.
 export function placeCar(car: Group, p: Player, cameraInside: boolean): void {
   car.position.set(p.x, 0, p.y);
@@ -107,16 +114,3 @@ export function placeCar(car: Group, p: Player, cameraInside: boolean): void {
   car.getObjectByName(WINDSHIELD)!.visible = !cameraInside;
 }
 
-// An emoji drawn on a small transparent canvas, to show as a picture in the scene.
-function emojiPicture(emoji: string): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext('2d')!;
-  ctx.font = '100px system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(emoji, 64, 70);
-  const picture = new CanvasTexture(canvas);
-  picture.colorSpace = SRGBColorSpace;
-  return picture;
-}

@@ -10,7 +10,7 @@ export interface Controls {
 
 export interface PlayerConfig {
   name: string;
-  emoji: string; // the driver sitting in the car
+  emoji: string; // shown before the name, at the top and in "🐱 Player 1 gewinnt!"
   color: string; // the car's paint
   // Where across the start line the car starts: 0 = the track's left edge, 1 = its right edge
   // (as seen from the driver's seat). Cars start just behind the line, pointing along the track.
@@ -37,13 +37,13 @@ export const PIXELS_PER_UNIT = 1.2;
 //   tilt: 0 = looking straight down, 90 = looking along the floor from its near edge.
 //   fov 0 = no perspective at all: far things look as big as near ones.
 //
-// The others ride along with the cat's car. Until there's a split screen, they're only for racing
+// The others ride along with player 1's car. Until there's a split screen, they're only for racing
 // alone: when two players start a race, the game switches to 3D.
 //   behind: how far behind the middle of the car the camera is (below 0 = in front of the middle)
 //   height: how high above the floor the camera is
 //   lookAhead: the camera looks at the floor this far in front of the car
 //   swing: about how many seconds the camera lags behind the car's turns (0 = turns exactly with it)
-//   inside: the camera sits in the car, so the car's own emoji driver and windshield are hidden
+//   inside: the camera sits in the car, so the car's own driver (the helmet) and windshield are hidden
 export const CAMERAS = {
   '2d': { name: '2D', tilt: 0, fov: 0 },
   '3d': { name: '3D', tilt: 30, fov: 40 },
@@ -94,13 +94,15 @@ export const CAR = {
   height: 8, // thickness of the body
   rideHeight: 4, // gap between the floor and the bottom of the body
   wheel: { radius: 7, width: 8 },
-  driverSize: 0.85, // the driver emoji, compared to the car's width
+  helmetSize: 0.45, // the driver's helmet, compared to the car's width
   // Where the wheels sit, measured from the middle as a share of half the car's length.
   axles: { front: 0.55, back: 0.6 },
   colors: {
     wheels: '#1e1e1e',
     windshield: 'rgba(25,35,55,0.75)',
     stripe: 'rgba(255,255,255,0.85)', // racing stripe down the middle
+    helmet: '#f4f4f4',
+    visor: '#1e2433', // the dark glass on the front of the helmet
   },
 };
 export const COLORS = {
@@ -116,7 +118,7 @@ export const RACE = {
   winText: 'gewinnt!', // "🐱 Player 1 gewinnt!"
   tieText: 'Unentschieden!', // both cars cross the line at the same moment
   // The two buttons in the middle, before the race and again after it.
-  // With one player the cat races alone against the clock, steered by either side's keys.
+  // With one player, player 1's car races alone against the clock, steered by either side's keys.
   buttons: { one: 'Start 1 Spieler', two: 'Start 2 Spieler' },
   // Above the buttons on phones and tablets, where nobody can drive. Gone after the first key press.
   keyboardHint: '⌨️ Zum Fahren brauchst du eine Tastatur.',

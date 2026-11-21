@@ -15,7 +15,7 @@ const ctx = canvas.getContext('2d')!;
 let players: Player[] = [];
 
 // A fresh start: cars at the start line, last race's skid marks gone.
-// Racing alone, the cat starts in the middle of the line and both sides' keys steer it.
+// Racing alone, player 1's car starts in the middle of the line and both sides' keys steer it.
 function placeCarsAtStart(count: 1 | 2): void {
   players =
     count === 1
@@ -52,7 +52,7 @@ function showCamera(name: CameraName): void {
   cameraButton.title = `Camera: ${CAMERAS[name].name} (click to switch)`;
 }
 // Until there's a split screen, the views that ride along with a car are only for racing alone:
-// in a two-player race they would show the road ahead to the cat's driver only.
+// in a two-player race they would show the road ahead to player 1 only.
 function cameraAllowed(name: CameraName): boolean {
   const twoRacing = players.length === 2 && (racePhase() === 'countdown' || racePhase() === 'racing');
   return !(twoRacing && ridesAlong(CAMERAS[name]));

@@ -1,7 +1,7 @@
 # Arena Race
 
-A top-down race car game for one or two players on one keyboard: a cat and a dog race
-three laps round a track, or the cat races alone against the clock.
+A top-down race car game for one or two players on one keyboard: two cars race three laps
+round a track, or one races alone against the clock.
 
 Play it at https://arena-race.mrpia.ch (you need a keyboard).
 
@@ -29,7 +29,7 @@ After the race the two start buttons come back. On phones and tablets a line abo
 you need a keyboard (`RACE.keyboardHint`); it goes away at the first key press.
 
 - **2 Spieler:** the first car to drive 3 laps wins (`RACE.laps`).
-- **1 Spieler:** the cat races alone against the clock, steered by either side's keys. The
+- **1 Spieler:** player 1's car races alone against the clock, steered by either side's keys. The
   best time is kept in the browser. The track grows with the window, so a bigger window
   means a longer lap: each window size, number of laps and track shape has its own record.
 
@@ -71,7 +71,7 @@ example prompts for two-player games in general are in arena-starter's
 - `src/records.ts` – the best one-player time, kept in the browser.
 - `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
 - `src/scene.ts` – the 3D scene: the floor, the tire walls, the skid marks, the sun and its shadows.
-- `src/cars.ts` – what a car looks like in 3D, with the player's emoji as the driver.
+- `src/cars.ts` – what a car looks like in 3D, with a white helmet for the driver.
 - `src/camera.ts` – the 2D and 3D cameras, aimed and zoomed so the floor fits the window.
 - `src/hud.ts` – names, laps, keys, stopwatch, countdown and results, drawn flat on top of the scene.
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
@@ -80,7 +80,7 @@ example prompts for two-player games in general are in arena-starter's
 - `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
 
 Click the camera button on the left (it shows the view you're in) to go through the views:
-looking straight down (2D), a tilted camera (3D), behind the cat's car (🚗), and the cat's
+looking straight down (2D), a tilted camera (3D), behind player 1's car (🚗), and its
 driver's seat (👀). Behind the car, the camera swings round a moment after the car turns.
 The last two are for racing alone: until there's a split screen, a two-player race switches
 them to 3D. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each

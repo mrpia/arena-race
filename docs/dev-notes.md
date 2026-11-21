@@ -40,6 +40,16 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   57 to 60 fps in the driver's seat on every floor (step 18; lava 7.9 until step 19, 59 after);
   60 in 2D and 3D on grass and lava. The first measurement after starting the browser sometimes
   comes out around 50, even on grass.
+- Close the Playwright MCP browser before measuring on the real card. With it open (drawing in
+  software, plus a test render loop), every view on the real card measured 30 fps; closed, 60
+  (step 20).
+- To look at the scene from any angle (a car from the front, say), catch three.js' renderer and
+  scene before the page loads: `page.addInitScript` that sets `window.__THREE_DEVTOOLS__` to an
+  `EventTarget` and keeps the `detail` of each `observe` event (the renderer, then the scene).
+  Then import three.js from the URL the page loaded, make a `PerspectiveCamera`, and call
+  `renderer.render(scene, camera)` in a `requestAnimationFrame` loop started from
+  `page.evaluate`: it runs after the game's own frame, so the screenshot shows your camera. Cars
+  are the scene's children that have a child named `driver`.
 - To find what a frame spends its time on, take a CPU profile through a CDP session
   (`Profiler.start`, wait, `Profiler.stop`) and add up self time per function. In step 17,
   JavaScript was about 1% and "(program)" the rest: waiting for the software renderer.
