@@ -130,9 +130,9 @@ export const CAR = {
   // The body leans on its springs, also only a look. It leans out of turns, dips its nose when the
   // car slows down (brake, grass, tires) and lifts it when the car speeds up (after "LOS!").
   lean: {
-    side: 4, // degrees the body leans out in a full-speed turn at full lock
-    nose: 2, // degrees the nose dips or lifts for the same push forward or back
-    max: 6, // it never leans further than this, even crashing into the tires
+    side: 6, // degrees the body leans out in a full-speed turn at full lock
+    nose: 3, // degrees the nose dips or lifts for the same push forward or back
+    max: 8, // it never leans further than this, even crashing into the tires
     bounces: 2.5, // how quickly the springs bounce, in bounces per second
     damping: 0.5, // 0 = the body keeps on wobbling, 1 = it settles without a wobble
   },

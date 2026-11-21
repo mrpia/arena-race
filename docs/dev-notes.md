@@ -97,9 +97,9 @@ is in world units.
 - One lap is about 2816 world units, about 11 s flat out. A three-lap race takes 35 s plus
   mistakes.
 - Speed on grass: 117, on asphalt 260.
-- Body lean (step 27, `CAR.lean` defaults): 4° out of a full-lock turn at full speed, 3.8° once
-  steady; 3.4° drifting; nose down 1.9° braking, about 2° onto the grass (only simulated), 6° (the most) into a tire; nose
-  up 3.9° after "LOS!". Back to level within about 0.5 s.
+- Body lean (step 27, `CAR.lean` 6, 3, 8): 6° out of a full-lock turn at full speed, 5.7° once
+  steady; nose down 2.9° braking; nose up 5.8° after "LOS!". Simulated: 6.3° drifting, about 3°
+  onto the grass, 8° (the most) into a tire. Back to level within about 0.5 s.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
 - The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:

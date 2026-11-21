@@ -571,7 +571,7 @@ pull request.
   it stands still while paused and starts level in each race.
 - In a drift the nose lifts about 1.4°: the car points into the corner, so part of the pull toward
   the corner goes along the nose. Left as it is.
-- Checked: typecheck; a test car with walls and grass off (start: nose up 3.9°; full-lock right
+- Checked, with those first values: typecheck; a test car with walls and grass off (start: nose up 3.9°; full-lock right
   turn: 4° toward the left, out of the turn, then 3.8°; let go: level again within 0.5 s; brake:
   nose down 1.9°, and up 1.9° on letting go; drift left: 3.4° toward the right), and straight into
   a tire (nose down 6°, then up 4.4° driving off). The direction checked in a picture from behind,
@@ -580,3 +580,12 @@ pull request.
 - Not checked: how it feels in motion (the test browser draws about 5 frames per second), whether
   4° is enough to notice, and whether anyone gets queasy in the driver's seat. Speed: two angles
   per car per frame, not measured.
+- Made stronger before merging, asked by the adult: `side` 6, `nose` 3, `max` 8 (were 4, 2, 6).
+  Measured again with the test car: nose up 5.8° at the start, 6° out of a full-lock turn (5.7°
+  once steady), nose down 2.9° braking. Simulated: 6.3° drifting, 8° into a tire. Only that crash
+  reaches 8°, and then the nose dips about 0.2 units into the floor for a moment: the car is 60
+  long and sits 4 above the floor, so a tilt past 7.7° touches it. Too little to see.
+- Every view shows the lean, because it's part of the car: `renderScene()` places each car once
+  per frame, before any camera draws, so both halves of the split screen show it too. From straight
+  above (2D) a tilt hardly shows: 6° moves the helmet about 2 units sideways, about 3 pixels at
+  1280×800 (worked out, not measured). It shows best behind the car and in the driver's seat.
