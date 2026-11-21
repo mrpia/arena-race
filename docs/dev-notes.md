@@ -43,6 +43,12 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   grid, so the riding views are split): 60 in both riding views on every floor, and at
   `deviceScaleFactor` 1.5 and 2. The first measurement after starting the browser sometimes
   comes out around 50, even on grass.
+- The two ways of starting Chromium on the real card don't always agree. `fps-per-view.cjs` also
+  passes `--enable-features=Vulkan`; the other scripts don't. With it, shapes drawn on the HUD
+  canvas every frame (a filled box and two small dots: the first track map, step 23) cost about
+  15 fps in split screen; without it they cost nothing. Copying a prepainted picture with
+  `drawImage` costs nothing in either. So measure HUD changes with both, and draw extras from
+  pictures painted once. Why remains open: headless Chromium doesn't open `chrome://gpu`.
 - Close the Playwright MCP browser before measuring on the real card. With it open (drawing in
   software, plus a test render loop), every view on the real card measured 30 fps; closed, 60
   (step 20).

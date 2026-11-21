@@ -73,7 +73,7 @@ example prompts for two-player games in general are in arena-starter's
 - `src/scene.ts` – the 3D scene: the floor, the tire walls, the skid marks, the sun and its shadows.
 - `src/cars.ts` – what a car looks like in 3D, with a white helmet for the driver.
 - `src/camera.ts` – the 2D and 3D cameras, aimed and zoomed so the floor fits the window, the cameras riding along with each car, and the split screen.
-- `src/hud.ts` – names, laps, keys, stopwatch, countdown and results, drawn flat on top of the scene.
+- `src/hud.ts` – names, laps, keys, stopwatch, countdown, results and the track map in split screen, drawn flat on top of the scene.
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
 - `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
@@ -83,13 +83,14 @@ Click the camera button on the left (it shows the view you're in) to go through 
 looking straight down (2D), a tilted camera (3D), behind the car (🚗), and the driver's seat
 (👀). Behind the car, the camera swings round a moment after the car turns. With two players
 the last two split the screen: player 1's car on the left half, player 2's on the right
-(`SPLIT_SCREEN`). Before and after a race the same views sit in a row under the start
-buttons, and J and K go back and forward through them (`VIEW_KEYS`); during a race the two
-keys do nothing, so nobody switches the other player's half. `CAMERA` in `config.ts` sets
-the view the game starts in, and `CAMERAS` how each view looks: tilt and perspective, or how
-far behind and how high the camera rides, and how quickly it swings round. `SCENE` sets
-where the sun shines from, how dark the shadows are and how thick the floor is; `CAR` and
-`TIRES` how tall cars and tire walls are.
+(`SPLIT_SCREEN`), with a small map of the track at the top in the middle showing both cars
+(`TRACK_MAP`). Before and after a race the same views sit in a row under the start buttons,
+and J and K go back and forward through them (`VIEW_KEYS`); during a race the two keys do
+nothing, so nobody switches the other player's half. `CAMERA` in `config.ts` sets the view
+the game starts in, and `CAMERAS` how each view looks: tilt and perspective, or how far
+behind and how high the camera rides, and how quickly it swings round. `SCENE` sets where
+the sun shines from, how dark the shadows are and how thick the floor is; `CAR` and `TIRES`
+how tall cars and tire walls are.
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.

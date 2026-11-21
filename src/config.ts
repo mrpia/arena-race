@@ -63,6 +63,21 @@ export const SPLIT_SCREEN = {
   gap: 4, // the line between the two halves, in screen pixels (it has the page's color, COLORS.background)
 };
 
+// In split screen, a small map of the track at the top in the middle, with a dot for each car.
+// North is up, as in the 2D view. In small windows it shrinks to stay clear of the winner's line.
+export const TRACK_MAP = {
+  width: 200, // in screen pixels; the height follows the arena's shape
+  top: 58, // from the top of the window to the map's box, just under the GitHub icon
+  edge: 1.5, // the white lines along both edges of the track, in screen pixels
+  carSize: 5, // how big each car's dot is (its radius), in screen pixels
+  colors: {
+    background: 'rgba(20,24,34,0.92)', // like the floor row, so the line between the halves hardly shows through
+    track: '#6b6f76',
+    edge: '#f1f1f1',
+    start: '#ffd43b', // the start/finish line
+  },
+};
+
 // The 3D scene: the sun, its shadows, and the floor everything stands on.
 export const SCENE = {
   sunFrom: 225, // where the sun shines from, in degrees: 0 = right, 90 = near edge, 180 = left, 270 = far edge

@@ -1,9 +1,11 @@
 // Everything drawn flat on top of the 3D scene: names, laps, keys, stopwatch, countdown and results.
 // It has its own see-through canvas over the scene's canvas, and works in screen pixels.
-import { COLORS, type Controls, COUNTDOWN, RACE, VIEW } from './config';
+import { screenParts } from './camera';
+import { ARENA, COLORS, type Controls, COUNTDOWN, RACE, TRACK_MAP, VIEW } from './config';
 import type { Player } from './player';
 import { countdownSign, lapsDone, raceTime, raceWinners, soloResult } from './race';
 import { bestTime } from './records';
+import { getTrack, type Track } from './track';
 
 // "KeyA" -> "A", "ArrowLeft" -> "Left"
 export function keyLabel(code: string): string {
@@ -93,6 +95,113 @@ function drawStopwatch(ctx: CanvasRenderingContext2D): void {
   ctx.fillText(`${RACE.recordText}: ${best === null ? '–' : seconds(best)}`, x, 50);
 }
 
+// The track map is copied onto the HUD every frame from pictures painted once: the map itself (its
+// dark box, the track and the start line), and a dot for each car that is turned the way the car
+// faces. Drawing the box and dots as shapes every frame cost about 15 fps in one test browser.
+const mapPicture = document.createElement('canvas');
+let mapPaintedFor: { track: Track; width: number; dpr: number } | null = null;
+const dotPictures = new Map<string, HTMLCanvasElement>(); // per car color and pixel density
+
+const MAP_PADDING = 8; // between the map and the edge of its dark box
+const RESULT_REACH = 130; // the winner's line (drawResult) reaches up to about this far above the middle
+
+// Split screen: a small map of the whole track at the top in the middle, over the line between the
+// halves, with a dot for each car pointing the way it drives.
+function drawTrackMap(ctx: CanvasRenderingContext2D, players: Player[]): void {
+  const shape = ARENA.height / ARENA.width;
+  const room = VIEW.height / 2 - RESULT_REACH - TRACK_MAP.top - 2 * MAP_PADDING; // height it can have
+  const width = Math.min(TRACK_MAP.width, VIEW.width * 0.25, room / shape);
+  if (width < 40) return; // too small to be any use
+  const height = width * shape;
+  const left = (VIEW.width - width) / 2;
+  const top = TRACK_MAP.top + MAP_PADDING;
+  const scale = width / ARENA.width; // screen pixels per world unit
+
+  const track = getTrack();
+  const dpr = window.devicePixelRatio || 1;
+  const painted = mapPaintedFor;
+  if (!painted || painted.track !== track || painted.width !== width || painted.dpr !== dpr) {
+    paintMapPicture(track, width, height, dpr);
+    mapPaintedFor = { track, width, dpr };
+  }
+  ctx.drawImage(mapPicture, left - MAP_PADDING, top - MAP_PADDING, width + 2 * MAP_PADDING, height + 2 * MAP_PADDING);
+
+  for (const p of players) {
+    const dot = dotPicture(p.config.color, dpr);
+    const size = dot.width / dpr;
+    ctx.save();
+    ctx.translate(left + p.x * scale, top + p.y * scale);
+    ctx.rotate(p.angle);
+    ctx.drawImage(dot, -size / 2, -size / 2, size, size);
+    ctx.restore();
+  }
+}
+
+// The map picture: the dark box, and on it the track in world units, scaled down: a white band the
+// track's width, a gray one a little narrower on top (which leaves the edges white), and the
+// start/finish line.
+function paintMapPicture(track: Track, width: number, height: number, dpr: number): void {
+  mapPicture.width = Math.round((width + 2 * MAP_PADDING) * dpr);
+  mapPicture.height = Math.round((height + 2 * MAP_PADDING) * dpr);
+  const g = mapPicture.getContext('2d')!;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = TRACK_MAP.colors.background;
+  g.beginPath();
+  g.roundRect(0, 0, width + 2 * MAP_PADDING, height + 2 * MAP_PADDING, 10);
+  g.fill();
+
+  const scale = width / ARENA.width; // pixels per world unit
+  g.translate(MAP_PADDING, MAP_PADDING);
+  g.scale(scale, scale);
+  const { middle, halfWidth } = track;
+  g.lineJoin = 'round';
+  g.beginPath();
+  middle.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
+  g.closePath();
+  g.strokeStyle = TRACK_MAP.colors.edge;
+  g.lineWidth = 2 * halfWidth;
+  g.stroke();
+  g.strokeStyle = TRACK_MAP.colors.track;
+  g.lineWidth = 2 * halfWidth - (2 * TRACK_MAP.edge) / scale;
+  g.stroke();
+  // The start/finish line runs straight across the track at its first point.
+  const { dx, dy } = track.directions[0];
+  const start = middle[0];
+  g.beginPath();
+  g.moveTo(start.x + dy * halfWidth, start.y - dx * halfWidth);
+  g.lineTo(start.x - dy * halfWidth, start.y + dx * halfWidth);
+  g.strokeStyle = TRACK_MAP.colors.start;
+  g.lineWidth = 2 / scale;
+  g.stroke();
+}
+
+// A car on the map: a dot in the car's color with a point in front (to the right, before turning),
+// outlined in white, in the middle of a small square picture.
+function dotPicture(color: string, dpr: number): HTMLCanvasElement {
+  const key = `${color} ${dpr}`;
+  let picture = dotPictures.get(key);
+  if (picture) return picture;
+  const r = TRACK_MAP.carSize;
+  const nose = 1.9 * r; // how far the point sticks out in front
+  const side = Math.acos(r / nose); // where the point's sides touch the dot
+  const size = 2 * Math.ceil(nose + 2); // room for the point and the outline
+  picture = document.createElement('canvas');
+  picture.width = picture.height = Math.ceil(size * dpr);
+  const g = picture.getContext('2d')!;
+  g.setTransform(dpr, 0, 0, dpr, (size * dpr) / 2, (size * dpr) / 2);
+  g.beginPath();
+  g.moveTo(nose, 0);
+  g.arc(0, 0, r, side, 2 * Math.PI - side);
+  g.closePath();
+  g.fillStyle = color;
+  g.fill();
+  g.lineWidth = 1.5;
+  g.strokeStyle = '#ffffff';
+  g.stroke();
+  dotPictures.set(key, picture);
+  return picture;
+}
+
 // The big "3", "2", "1", "LOS!" in the middle of the screen. Each one pops in big, settles, and fades out.
 function drawCountdown(ctx: CanvasRenderingContext2D, sign: { text: string; age: number; go: boolean }): void {
   const pop = 1 + 0.5 * Math.pow(1 - Math.min(1, sign.age * 4), 3);
@@ -158,6 +267,7 @@ export function renderHud(ctx: CanvasRenderingContext2D, players: Player[], debu
   ctx.shadowBlur = 4;
   drawHud(ctx, players, debug);
   ctx.restore();
+  if (screenParts(players.length).length > 1) drawTrackMap(ctx, players);
   const sign = countdownSign();
   if (sign) drawCountdown(ctx, sign);
   const winners = raceWinners();

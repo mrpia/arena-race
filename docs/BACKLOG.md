@@ -4,15 +4,6 @@ Ideas and known issues not dealt with yet. Each one has a short slug, so notes, 
 new sessions can name it ("backlog: i18n"). When one gets done, it becomes a step in
 [decisions.md](decisions.md) and its entry here is deleted.
 
-## track-map
-
-A small map of the whole track in split screen (step 21), with both cars on it. Each player only
-sees their own half: not the whole track, and the other car only when it's close. Raised in
-step 21, not asked for yet.
-
-- To decide: where it goes (in the middle over the line between the halves, or one per half) and
-  how big. In the middle it covers the inside edge of both halves equally.
-
 ## turbo
 
 A speed boost after a drift, with sparks. Discussed in step 6 (brake and drift), not chosen.

@@ -448,3 +448,31 @@ starting the race, and the keys J and K to switch views, one each way.
   the row and the winner's line at 1280×800; the row at 1024×600 and 420×800 (start buttons
   stacked).
 - Not checked: speed (nothing in the 3D scene changed), and whether the kids notice the key caps.
+
+## 23. A small map of the track in split screen (2026-11-21)
+
+**Asked (by the adult):** a small map of the track for split screen (`track-map` in the backlog).
+
+- One choice, decided by the adult: one map at the top in the middle, over the line between the
+  halves and just under the GitHub icon (rather than at the bottom in the middle, or one in each
+  half). In the riding views that part of the screen is sky, so the map hides nothing of the road,
+  and it covers both halves equally.
+- Defaults, said before building: only in split screen (two cars in 🚗 or 👀), not in 2D, 3D or
+  racing alone; north up as in 2D, not turning with the car; the track with white edges, the
+  start/finish line in yellow, and a dot in each car's color with a point showing which way it
+  drives. `TRACK_MAP` in `config.ts`: 200 pixels wide, the height follows the arena.
+- Said before building: the dots show where the cars are, not who's ahead. A car a lap behind can
+  sit on the same spot; only the lap counters tell.
+- In small windows the map shrinks: at most a quarter of the window's width, and always above the
+  winner's line. Below 40 pixels wide it's left out, so a `TRACK_MAP.width` under 40 turns it off.
+- Speed: the map (with its dark box) and each car's dot are painted once into small pictures and
+  only copied each frame. A first version drew the box and the dots as shapes every frame. In one
+  of the two test-browser setups on the adult's card (with Chrome's Vulkan feature, as
+  `fps-per-view.cjs` starts it) that dropped split screen from 60 to about 45 fps; copying pictures
+  costs nothing measurable there. After: 60 fps in both riding views, on grass and lava, in both
+  setups.
+- Checked: typecheck; the dots on the grid and in a race against the cars' real positions in the
+  scene (blue within 2 pixels; red off by the distance it drove before the screenshot); the dots
+  pointing the right way; the map at 1280×800 and 1024×600, clear of the countdown and the
+  winner's line; no map in 2D or racing alone.
+- Not checked: whether the kids look at it while racing.
