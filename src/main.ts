@@ -24,12 +24,14 @@ const canvas = document.querySelector<HTMLCanvasElement>('#hud')!;
 const ctx = canvas.getContext('2d')!;
 
 let players: Player[] = [];
+// How many players race: picked in the row under the start button, kept from race to race.
+let playerCount: 1 | 2 = RACE.firstPlayers;
 
 // A fresh start: cars at the start line, last race's skid marks gone.
 // Racing alone, player 1's car starts in the middle of the line and both sides' keys steer it.
-function placeCarsAtStart(count: 1 | 2): void {
+function placeCarsAtStart(): void {
   players =
-    count === 1
+    playerCount === 1
       ? [new Player(PLAYERS[0], { lane: 0.5, controls: PLAYERS.map((cfg) => cfg.controls) })]
       : PLAYERS.map((cfg) => new Player(cfg));
   clearSkidMarks();
@@ -47,7 +49,7 @@ function resize(): void {
   resizeScene();
   // The track changes with the window. Before the start, put the cars back at the start line;
   // during the race, just push them back inside the walls if the arena shrank.
-  if (racePhase() === 'waiting') placeCarsAtStart(players.length === 1 ? 1 : 2);
+  if (racePhase() === 'waiting') placeCarsAtStart();
   else for (const p of players) p.stayInArena();
 }
 window.addEventListener('resize', resize);
@@ -101,7 +103,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') for (const row of pickerRows) row.hidden = true;
 });
 
-// The view: camera button on the left. The same views sit in a row under the start buttons, between
+// The view: camera button on the left. The same views sit in a row under the start button, between
 // the keys that go back and forward (VIEW_KEYS).
 const cameraNames = Object.keys(CAMERAS) as CameraName[];
 const showCameraChoice = sidePicker(
@@ -196,37 +198,63 @@ resumeButton.addEventListener('click', () => {
 });
 quitButton.addEventListener('click', () => {
   quitRace();
-  placeCarsAtStart(players.length === 1 ? 1 : 2);
+  placeCarsAtStart();
   showRacing(false);
   quitButton.blur();
 });
 
-// During a race the pause button is at the top; before and after it, the start buttons and the GitHub icon.
+// During a race the pause button is at the top; before and after it, the start button with the
+// player and view rows under it, and the GitHub icon.
 function showRacing(racing: boolean): void {
-  startButtons.hidden = racing;
+  startArea.hidden = racing;
   githubLink.hidden = racing;
   pauseButton.hidden = !racing;
   pauseMenu.hidden = true;
 }
 
-// The two start buttons in the middle: race alone against the clock, or two players.
-// Either one puts the cars at the start line and begins the countdown. They come back after each race.
-const startButtons = document.querySelector<HTMLDivElement>('#start-buttons')!;
-const startChoices: [string, 1 | 2, string][] = [
-  ['#start-1', 1, RACE.buttons.one],
-  ['#start-2', 2, RACE.buttons.two],
-];
-for (const [id, count, label] of startChoices) {
-  const button = document.querySelector<HTMLButtonElement>(id)!;
-  button.textContent = label;
-  button.addEventListener('click', () => {
-    placeCarsAtStart(count);
-    startCountdown();
-    showRacing(true);
+// The start button in the middle: puts the cars at the start line and begins the countdown.
+// It comes back after each race, with the same number of players and the same view.
+const startArea = document.querySelector<HTMLDivElement>('#start-area')!;
+const startButton = document.querySelector<HTMLButtonElement>('#start')!;
+startButton.textContent = RACE.startText;
+startButton.addEventListener('click', () => {
+  placeCarsAtStart();
+  startCountdown();
+  showRacing(true);
+  // Let go of focus, or Space (a player's drift key) would click it again.
+  startButton.blur();
+});
+
+// The number of players, in a row under the start button: the cat alone (racing against the clock)
+// or the cat and the dog. The cars on the start line follow the choice, so the riding views and the
+// top bar already look like the race will.
+const playerChoices = ([1, 2] as const).map((count) => {
+  const choice = document.createElement('button');
+  choice.type = 'button';
+  choice.className = 'emoji-button';
+  choice.textContent = PLAYERS.slice(0, count)
+    .map((cfg) => cfg.emoji)
+    .join('');
+  choice.title = count === 1 ? RACE.playerTitles.one : RACE.playerTitles.two;
+  choice.addEventListener('click', () => {
+    choosePlayers(count);
     // Let go of focus, or Space (a player's drift key) would click it again.
-    button.blur();
+    choice.blur();
   });
+  return { count, choice };
+});
+document.querySelector<HTMLDivElement>('#player-choices')!.append(...playerChoices.map((c) => c.choice));
+function choosePlayers(count: 1 | 2): void {
+  if (count !== playerCount) {
+    playerCount = count;
+    // The row only shows before and after a race. After one, the result on screen belongs to the
+    // other kind of race, so it goes, and the cars go back to the start line.
+    quitRace();
+    placeCarsAtStart();
+  }
+  for (const c of playerChoices) c.choice.classList.toggle('chosen', c.count === count);
 }
+choosePlayers(playerCount);
 
 // Phones and tablets can open the game, but nobody can drive without a keyboard. The hint
 // shows where the main pointer is a finger, and goes away for good at the first key press.

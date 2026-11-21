@@ -21,12 +21,14 @@ npm run dev        # opens http://localhost:5173
 | Player 1 | A D | S | Space |
 | Player 2 | ← → | ↓ | Enter |
 
-Click **Start 1 Spieler** or **Start 2 Spieler** in the middle of the screen. After the
-countdown (3, 2, 1, LOS!) the cars drive off; before that they can't move. `COUNTDOWN` in
-`config.ts` sets the texts and times. The lap each player is on shows next to their name.
-A lap only counts if you drove the whole way round, not back and forth over the line.
-After the race the two start buttons come back. On phones and tablets a line above them says
-you need a keyboard (`RACE.keyboardHint`); it goes away at the first key press.
+Under the **START** button in the middle of the screen, pick 🐱 to race alone or 🐱🐶 for two
+players; the cars on the start line follow the choice. The page opens with two players
+(`RACE.firstPlayers`). Then click **START**. After the countdown (3, 2, 1, LOS!) the cars drive
+off; before that they can't move. `COUNTDOWN` in `config.ts` sets the texts and times. The lap
+each player is on shows next to their name. A lap only counts if you drove the whole way round,
+not back and forth over the line. After the race the start button comes back with the same
+choices. On phones and tablets a line above it says you need a keyboard (`RACE.keyboardHint`);
+it goes away at the first key press.
 
 During the countdown and the race, a pause button (⏸️) sits at the top in the middle, where the
 GitHub icon is otherwise; Escape does the same. It stops everything and opens a menu:
@@ -34,8 +36,8 @@ GitHub icon is otherwise; Escape does the same. It stops everything and opens a 
 **Beenden** stops the race with no winner and no record. Racing alone, the pause doesn't count
 toward the time. Texts and the key are in `PAUSE` in `config.ts`.
 
-- **2 Spieler:** the first car to drive 3 laps wins (`RACE.laps`).
-- **1 Spieler:** player 1's car races alone against the clock, steered by either side's keys. The
+- **🐱🐶, two players:** the first car to drive 3 laps wins (`RACE.laps`).
+- **🐱, one player:** player 1's car races alone against the clock, steered by either side's keys. The
   best time is kept in the browser. The track grows with the window, so a bigger window
   means a longer lap: each window size, number of laps and track shape has its own record.
 
@@ -83,7 +85,7 @@ example prompts for two-player games in general are in arena-starter's
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
 - `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
-- `src/main.ts` – canvas setup, the controls on the left, the GitHub link and the game loop.
+- `src/main.ts` – canvas setup, the controls on the left, the start button with the player and view choices, the GitHub link and the game loop.
 
 Click the camera button on the left (it shows the view you're in) for a row of all the
 views, like the floor button, and pick one: looking straight down (2D), a tilted camera
@@ -91,7 +93,7 @@ views, like the floor button, and pick one: looking straight down (2D), a tilted
 a moment after the car turns. With two players the last two split the screen: player 1's car
 on the left half, player 2's on the right (`SPLIT_SCREEN`), with a small map of the track at
 the top in the middle showing both cars (`TRACK_MAP`). Before and after a race the same
-views sit in a row under the start buttons, and J and K go back and forward through them
+views sit in a row under the start button, below the players, and J and K go back and forward through them
 (`VIEW_KEYS`). Racing alone they also work during the race; in a two-player race they do
 nothing until the finish, so nobody switches the other player's half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each view
 looks: tilt and perspective, or how far behind and how high the camera rides, and how

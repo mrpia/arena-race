@@ -31,7 +31,7 @@ Players type their own names in the game instead of "Player 1" and "Player 2", a
 browser keeps them in `localStorage`. Widened on 2026-11-13 by the adult (it was a config
 edit before).
 
-- For the kids to decide: where the name fields go (next to the start buttons?) and what
+- For the kids to decide: where the name fields go (next to the START button and its rows?) and what
   shows when a field is empty.
 - `input.ts` blocks Space, Enter and the arrows for the whole page, so it has to skip keys
   typed into a name field, or names can't have a space and the cursor can't move.
@@ -94,12 +94,14 @@ left column during a two-player race, or move it to the middle line.
 
 ## narrow-windows
 
-Known issue, measured in step 15:
+Known issue, measured in steps 15 and 29:
 
-- The left column (2D/3D, floor) overlaps the start buttons in windows 790 to 850 px wide,
-  where the two buttons still sit side by side, and in windows up to 460 px wide, where they
-  stack. Everything can still be clicked; the side buttons lie on top. Keeping the start
-  buttons clear of the column (a wider margin) would make them stack sooner.
+- Since step 29 the left column (2D/3D, floor) stays clear of the START button and the two rows
+  under it in every window measured, down to 320×568. START alone is about 200 px wide; going by
+  its size, it would reach the column in windows narrower than about 294 px.
+- On phones and tablets, where the keyboard hint shows, the column's 2D button lies over the left
+  corner of the hint's box at 390×844 (about 32×31 px). The hint's text stays clear, and the hint
+  isn't clickable.
 - On a 390 px phone the open floor row is 484 px long, so the last two floors (Brick
   baseplate, Lava) are off the screen.
 

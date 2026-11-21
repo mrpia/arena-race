@@ -68,7 +68,7 @@ export function resumeRace(): void {
   else restart = 0;
 }
 
-// Stop the race without a winner. The game is back to waiting for a start button.
+// Stop the race without a winner. The game is back to waiting for the start button.
 export function quitRace(): void {
   phase = 'waiting';
   clock = 0;

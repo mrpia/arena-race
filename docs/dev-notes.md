@@ -20,6 +20,9 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
 - To end a race at once, set `RACE.laps = 0` on the loaded config module: the next step
   finishes the race (both cars at once gives a dead heat). Set it back before the next race.
   Records are stored per number of laps, so read the record while `laps` is still 0.
+- To wait until the race reaches a phase, poll `racePhase()` with `page.evaluate` in a loop in the
+  test script. In step 29, `page.waitForFunction` with an async check (one that imports
+  `race.ts`) once came back while the race was still counting down.
 - To drive a test car, hold keys with `page.keyboard.down(...)`, then call
   `player.update(1 / 60)` in a loop inside `page.evaluate`. Give the test car its own keys
   (for example KeyH, KeyL, KeyU, KeyI; not J and K, which switch the view) and
@@ -135,13 +138,13 @@ is in world units.
   would arrive at full color. Black around the glow avoids that.
 - During a session another project's dev server took over port 5199 after ours stopped, and a
   profile measured the wrong app. Check the page title before measuring.
-- The start buttons are clicked with the mouse. Space and Enter are game keys: `input.ts`
-  swallows them, and a button that kept focus would be clicked again by them, so it lets go
-  of focus after the click.
+- The start button and the player and view choices under it are clicked with the mouse. Space
+  and Enter are game keys: `input.ts` swallows them, and a button that kept focus would be
+  clicked again by them, so each one lets go of focus after the click.
 - Saved records belong to the browser origin, and that includes the port. If another dev
   server already holds port 5173, Vite moves to 5174 and the saved records seem to be gone.
   The online game keeps its own records too.
-- Every `position: fixed` element with a `transform` (the left column, the start buttons, the
+- Every `position: fixed` element with a `transform` (the left column, the start area, the
   GitHub icon) is a layer of its own. A `z-index` on something inside one, like the floor
   row, can't lift it over another layer; put the `z-index` on the outer element.
 - Stop a background dev server by its process id (`ss -ltnp | grep 5173`), not with

@@ -242,7 +242,7 @@ function drawBigText(ctx: CanvasRenderingContext2D, text: string, color: string,
   ctx.restore();
 }
 
-// After the race, above the start buttons: "🐱 Player 1 gewinnt!" in the winner's color,
+// After the race, above the start button: "🐱 Player 1 gewinnt!" in the winner's color,
 // or racing alone, the time and the record.
 function drawResult(ctx: CanvasRenderingContext2D, players: Player[], winners: Player[]): void {
   const middle = VIEW.height / 2;

@@ -10,7 +10,7 @@
       body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
       /* The 3D scene, with the HUD's see-through canvas on top of it. */
       canvas { display: block; position: fixed; left: 0; top: 0; }
-      /* z-index: the open floor row must lie on top of the start buttons, or they swallow its clicks. */
+      /* z-index: the open floor row must lie on top of the start button and its rows, or they swallow its clicks. */
       #side-controls {
         position: fixed; left: 12px; top: 50%; transform: translateY(-50%); z-index: 1;
         display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -48,25 +48,32 @@
       #pause-menu h2 { margin: 0; color: #fff; font: bold 40px system-ui, sans-serif; }
       #pause-menu .choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
       #github svg { width: 24px; height: 24px; fill: #1b1f2a; }
-      #start-buttons {
+      #start-area {
         position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
         display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
         width: max-content; max-width: calc(100vw - 32px);
       }
-      #start-buttons[hidden] { display: none; }
+      #start-area[hidden] { display: none; }
       #keyboard-hint {
         flex-basis: 100%; margin: 0; padding: 10px 16px; border-radius: 12px;
         text-align: center; color: #fff; background: rgba(20, 24, 34, 0.92);
         font: bold 22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
       }
       #keyboard-hint[hidden] { display: none; }
-      /* The views in a row under the start buttons. Out of the flow, so the start buttons stay
-         where they were and don't run into the winner's line above them. */
-      #view-choices {
+      /* Under the start button: a row for the number of players, then a row for the view. Out of
+         the flow, so the start button stays where it was and doesn't run into the winner's line
+         above it. max-content: positioned from the middle of a narrow button, the rows would
+         otherwise only get half its width. */
+      #start-choices {
         position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%);
+        display: flex; flex-direction: column; align-items: center; gap: 10px; width: max-content;
+      }
+      .choice-row {
         display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px;
         background: rgba(20, 24, 34, 0.92); user-select: none;
       }
+      /* Room for two animals side by side on the two-player choice. */
+      #player-choices .emoji-button { width: auto; min-width: 36px; padding: 0 8px; }
       #view-choices .emoji-button { font-size: 15px; font-weight: bold; }
       #view-choices .key {
         min-width: 14px; padding: 2px 5px; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 5px;
@@ -110,11 +117,13 @@
         <div id="floor-picker" class="picker" hidden></div>
       </div>
     </div>
-    <div id="start-buttons">
+    <div id="start-area">
       <p id="keyboard-hint" hidden></p>
-      <button id="start-1" class="start" type="button"></button>
-      <button id="start-2" class="start" type="button"></button>
-      <div id="view-choices"></div>
+      <button id="start" class="start" type="button"></button>
+      <div id="start-choices">
+        <div id="player-choices" class="choice-row"></div>
+        <div id="view-choices" class="choice-row"></div>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -607,3 +607,41 @@ before and after it (step 22).
   after quitting; in a two-player race, J and K changing nothing during the countdown, the race and
   the pause, and working again after quitting; switching to 🚗 and 👀 in the middle of a solo race.
 - Not checked: speed (nothing that is drawn changed).
+
+## 29. One start button, with the number of players next to the view (2026-11-21)
+
+**Asked (by the adult):** pick the number of players (1 or 2) and the view before the race, then
+press one START button, instead of the two buttons "Start 1 Spieler" and "Start 2 Spieler" the
+kids asked for in step 7.
+
+- Three questions, decided by the adult. The players get a row of their own under START, 🐱 (alone)
+  or 🐱🐶 (together), above the view row from step 22. The other options were both choices in one
+  row, which would have had to wrap on a 390 px phone anyway, or the words "1 Spieler" and
+  "2 Spieler". The page opens with 2 players, as before, and a reload goes back to that, rather than
+  remembering the last choice in `localStorage` or opening with 1 player. The view isn't remembered
+  either. The cars on the start line follow the choice, rather than staying two until START.
+- With only one START button it's easy to start the wrong kind of race, so the grid shows which one
+  is on. With 🐱, one car waits in the middle, the riding views show it full screen, and the top
+  bar shows the stopwatch and the record before the start. With 🐱🐶, two cars and a split screen.
+- The button says "START", the adult's word, which is German too. "LOS!" stays the countdown's go
+  word.
+- The choice stays from race to race, after the finish and after "Beenden" (quit). Picking the other
+  number after a race takes the result (the time, or who won) off the screen and puts the new cars
+  on the start line, since that result belongs to the other kind of race. Picking the same one again
+  changes nothing.
+- The emojis come from `PLAYERS`, so they follow the players' emojis. In `RACE`: `startText`,
+  `playerTitles` (shown when the mouse rests on a choice) and `firstPlayers`.
+- Both rows hang below START, outside its group, like the view row in step 22: START sits where the
+  two buttons were, clear of the winner's line.
+- START alone is about 200 px wide, so the overlaps with the left column measured in step 15 are
+  gone (`narrow-windows`). On a phone, with the keyboard hint, START now sits lower than the two
+  stacked buttons did, and the 2D button lies over the left corner of the hint's box.
+- Checked: typecheck; 🐱 and 🐱🐶 on the grid in all four views (one car full screen, or split
+  screen with the map); Space after clicking a choice doing nothing; a solo and a two-player race
+  finished at once, with the result clear of START at 1280×800 and the choice still set afterwards;
+  the same choice after a finish keeping the result, the other one clearing it; "Beenden" keeping 🐱
+  and the view; J and K after the finish; START, the rows and the left column at eleven window sizes
+  from 1280×800 down to 320×568 (no overlap, nothing off screen); the phone layout with the keyboard
+  hint at 390×844.
+- Not checked: speed (only page elements changed, nothing in the 3D scene), and whether the kids
+  miss their two buttons.

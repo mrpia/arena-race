@@ -156,10 +156,13 @@ export const RACE = {
   finishedText: '🏁 Ziel!', // next to the name once you've done all the laps
   winText: 'gewinnt!', // "🐱 Player 1 gewinnt!"
   tieText: 'Unentschieden!', // both cars cross the line at the same moment
-  // The two buttons in the middle, before the race and again after it.
-  // With one player, player 1's car races alone against the clock, steered by either side's keys.
-  buttons: { one: 'Start 1 Spieler', two: 'Start 2 Spieler' },
-  // Above the buttons on phones and tablets, where nobody can drive. Gone after the first key press.
+  startText: 'START', // the button in the middle, before the race and again after it
+  // Under it, a row to pick one or two players, shown as the players' emojis (🐱 or 🐱🐶). These texts
+  // show when the mouse rests on a choice. With one player, player 1's car races alone against the
+  // clock, steered by either side's keys. The cars on the start line follow the choice.
+  playerTitles: { one: '1 Spieler', two: '2 Spieler' },
+  firstPlayers: 2 as 1 | 2, // the choice the page opens with; a reload goes back to it
+  // Above the start button on phones and tablets, where nobody can drive. Gone after the first key press.
   keyboardHint: '⌨️ Zum Fahren brauchst du eine Tastatur.',
   recordText: 'Rekord', // best time with one player, shown as "Rekord: 41.3 s"
   newRecordText: '🏆 Neuer Rekord!',
@@ -175,7 +178,7 @@ export const GITHUB = {
 
 // During the countdown and the race, a pause button takes the GitHub icon's place at the top. It
 // opens a menu in the middle: go on (after a countdown, so everyone has their hands back on the
-// keys) or quit the race (no winner, no record, back to the start buttons).
+// keys) or quit the race (no winner, no record, back to the start button).
 export const PAUSE = {
   key: 'Escape', // pauses, and pressed again goes on
   button: '⏸️',
