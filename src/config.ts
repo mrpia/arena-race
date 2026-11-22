@@ -30,7 +30,7 @@ export const ARENA_MIN = { width: 500, height: 300 };
 // at this zoom. Bigger = bigger players, smaller arena.
 export const PIXELS_PER_UNIT = 1.2;
 
-// The camera views, in the order the camera button on the left goes through them.
+// The camera views, in the order the view row under START shows them and J and K go through them.
 // fov (all views): how wide the camera sees, in degrees. Wider = stronger perspective.
 //
 // 2D and 3D look at the whole arena from its near (bottom) side and zoom so the floor fits the window.
@@ -53,7 +53,7 @@ export const CAMERAS = {
 export type CameraName = keyof typeof CAMERAS;
 export const CAMERA: CameraName = '2d'; // the view the game starts in
 
-// Keys that switch the view for everyone, like the camera button: back and forward through CAMERAS.
+// Keys that switch the view for everyone, like the view row: back and forward through CAMERAS.
 // Racing alone they work at any time. In a two-player race they only work before the start and
 // after the finish, so nobody can switch the other player's half in the middle of a race.
 export const VIEW_KEYS = { back: 'KeyJ', next: 'KeyK' };
@@ -264,7 +264,7 @@ export const TIRES = {
   },
 };
 
-// Floors for the floor picker under the 2D/3D button, in the order it shows them.
+// Floors for the floor row under START, in the order it shows them.
 // Floors are only paint; the race track is painted on top of every floor. Sizes are in world units.
 export const FLOORS = {
   grass: { name: 'Grass', emoji: '🌱' },

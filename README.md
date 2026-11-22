@@ -90,29 +90,28 @@ example prompts for two-player games in general are in arena-starter's
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
 - `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
-- `src/main.ts` – canvas setup, the controls on the left, the start button with the player and view choices, the GitHub link, the pause button and menu, and the game loop.
+- `src/main.ts` – canvas setup, the start button with the rows for players, view and floor under it, the GitHub link, the pause button and menu, and the game loop.
 - `index.html` – the page: the two canvases, the buttons, the pause menu and all the styles.
 
-Click the camera button on the left (it shows the view you're in) for a row of all the
-views, like the floor button, and pick one: looking straight down (2D), a tilted camera
-(3D), behind the car (🚗), and the driver's seat (👀). Behind the car, the camera swings round
-a moment after the car turns. With two players the last two split the screen: player 1's car
-on the left half, player 2's on the right (`SPLIT_SCREEN`), with a small map of the track at
-the top in the middle showing both cars (`TRACK_MAP`). Before and after a race the same
-views sit in a row under the start button, below the players, and J and K go back and forward through them
-(`VIEW_KEYS`). Racing alone they also work during the race; in a two-player race they do
-nothing until the finish, so nobody switches the other player's half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each view
+Under START, below the players, a row picks the view: looking straight down (2D), a tilted
+camera (3D), behind the car (🚗), and the driver's seat (👀). J and K go back and forward through
+them (`VIEW_KEYS`). Behind the car, the camera swings round a moment after the car turns. With two
+players the last two split the screen: player 1's car on the left half, player 2's on the right
+(`SPLIT_SCREEN`), with a small map of the track at the top in the middle showing both cars
+(`TRACK_MAP`). The row only shows before and after a race. Racing alone, J and K also work during
+the race; in a two-player race they do nothing until the finish, so nobody switches the other
+player's half. `CAMERA` in `config.ts` sets the view the game starts in, and `CAMERAS` how each view
 looks: tilt and perspective, or how far behind and how high the camera rides, and how
 quickly it swings round. `SCENE` sets where the sun shines from, how dark the shadows are
 and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are, and `CAR.steer` how far the front
 wheels turn when you steer, and `CAR.lean` how far the body leans in turns and when speeding up
 or slowing down (both only a look: they don't change how the car drives).
 
-The button under the camera button picks the floor, from a row of ten: grass, street, wooden
-floor, arcade, chess board, frozen lake, moon, treasure map, brick baseplate and lava. A floor
-is only paint. The track lies on top of every one, and the cars drive the same on all of them,
-ice included. `FLOORS` in `config.ts` lists them and `FLOOR` sets the one the game starts on;
-each floor has its own values there too (`GRASS`, `LAVA` and so on).
+The row under the views picks the floor, one of ten: grass, street, wooden floor, arcade, chess
+board, frozen lake, moon, treasure map, brick baseplate and lava. A floor is only paint. The track
+lies on top of every one, and the cars drive the same on all of them, ice included. `FLOORS` in
+`config.ts` lists them and `FLOOR` sets the one the game starts on; each floor has its own values
+there too (`GRASS`, `LAVA` and so on).
 
 The arena fills the window: a bigger window gives the players more room. Change
 `PIXELS_PER_UNIT` in `config.ts` to zoom in or out.

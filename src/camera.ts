@@ -12,7 +12,9 @@ type RideAlong = Extract<View, { behind: number }>;
 
 // Where the floor sits on screen.
 const FLOOR_TOP = 110; // room for the HUD above
-const FLOOR_SIDE = 60; // room for the buttons on the left
+// Room on each side. The buttons that were on the left are gone (step 30), but keep this number:
+// a narrower margin would make the arena wider, and records are saved per arena size.
+const FLOOR_SIDE = 60;
 const FLOOR_BOTTOM = 64; // room for the front of the floor and the debug line below
 
 // The arena's height is worked out as if the floor took up only 80% of its depth on screen,

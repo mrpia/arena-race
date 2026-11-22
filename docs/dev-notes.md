@@ -138,15 +138,16 @@ is in world units.
   would arrive at full color. Black around the glow avoids that.
 - During a session another project's dev server took over port 5199 after ours stopped, and a
   profile measured the wrong app. Check the page title before measuring.
-- The start button and the player and view choices under it are clicked with the mouse. Space
+- The start button and the player, view and floor rows under it are clicked with the mouse. Space
   and Enter are game keys: `input.ts` swallows them, and a button that kept focus would be
   clicked again by them, so each one lets go of focus after the click.
 - Saved records belong to the browser origin, and that includes the port. If another dev
   server already holds port 5173, Vite moves to 5174 and the saved records seem to be gone.
   The online game keeps its own records too.
-- Every `position: fixed` element with a `transform` (the left column, the start area, the
-  GitHub icon) is a layer of its own. A `z-index` on something inside one, like the floor
-  row, can't lift it over another layer; put the `z-index` on the outer element.
+- Every `position: fixed` element with a `transform` (the start area, the GitHub icon, and the
+  left column until step 30) is a layer of its own. A `z-index` on something inside one, like
+  the left column's floor row in step 15, can't lift it over another layer; put the `z-index`
+  on the outer element.
 - Stop a background dev server by its process id (`ss -ltnp | grep 5173`), not with
   `pkill -f vite…`: the pattern also matches the shell running `pkill`, which kills
   itself before the rest of the command runs. The adult may also have their own

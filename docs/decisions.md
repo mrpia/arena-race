@@ -645,3 +645,27 @@ kids asked for in step 7.
   hint at 390×844.
 - Not checked: speed (only page elements changed, nothing in the 3D scene), and whether the kids
   miss their two buttons.
+
+## 30. The floor row under START, and no more buttons on the left (2026-11-22)
+
+**Asked (by the adult):** move the floor choice to the middle of the screen and remove the controls
+on the left, together with a track choice in the middle (step 31).
+
+- Defaults, said before building: the floors get a row of their own under START, below the players
+  and the view, with the current one outlined like in the other rows. The camera button on the left
+  is gone too; the view row under START (step 22) and J and K do the same.
+- Side effects, said before building: in a two-player race nobody can switch the view any more (J
+  and K stay off then, step 28), and the floor can only be changed before or after a race. Racing
+  alone, J and K still work during the race. Nothing lies over player 1's half in split screen any
+  more, so `split-buttons` is gone from the backlog.
+- The 60 px margin the buttons needed stays on both sides (`FLOOR_SIDE` in `camera.ts`): a narrower
+  one would make the arena wider, and records are saved per arena size.
+- A row too long for the window wraps: on a 390 px phone the floors take two lines, and all ten
+  show (before, the last two were off the screen).
+- Checked: typecheck; picking lava in the row (outlined, focus let go); START hiding the rows,
+  "Beenden" bringing them back with the same floor; START and the three rows at 1280×800, 1366×768,
+  1024×600, 800×600, 420×800, 390×844 and 320×568 (all on screen), and 390×844 with the keyboard
+  hint (45 px lower, still on screen). At 568×320 (a phone held sideways) the floor row is off the
+  bottom, as the view row already was by 3 px (`narrow-windows`).
+- Not checked: speed (only page elements changed), and whether the kids miss switching the view in
+  the middle of a two-player race.

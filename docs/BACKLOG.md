@@ -46,7 +46,7 @@ Let players pick the game's language: FR, DE, IT or EN. Added 2026-11-12 by the 
 
 - Today the texts the kids see are German (in `config.ts`), but some HUD labels are English
   ("Player 1", "steer: …").
-- To decide: a language button on the left (next to 2D/3D and the floor), the browser's
+- To decide: a language row under START (next to the view and the floor), the browser's
   language, or both. The choice could be kept in `localStorage`.
 - Cost: every text exists four times, and the kids edit those texts. A type can make a
   missing translation fail `npm run typecheck`.
@@ -85,25 +85,16 @@ once `touch-controls` lets someone play on a phone. The GitHub icon in the middl
 line (step 14) runs into the lap counters sooner: below about 643 px with two players and
 the default names, earlier with longer names.
 
-## split-buttons
-
-Known issue since step 21: in split screen, the camera and floor buttons on the left lie over
-player 1's half, about 36 pixels in from the left edge at mid-height. Player 2's half has nothing
-on it. Small, but `CLAUDE.md` asks for both players to be equally strong. Possible fixes: hide the
-left column during a two-player race, or move it to the middle line.
-
 ## narrow-windows
 
-Known issue, measured in steps 15 and 29:
+Known issue, measured in steps 15, 29 and 30:
 
-- Since step 29 the left column (2D/3D, floor) stays clear of the START button and the two rows
-  under it in every window measured, down to 320×568. START alone is about 200 px wide; going by
-  its size, it would reach the column in windows narrower than about 294 px.
-- On phones and tablets, where the keyboard hint shows, the column's 2D button lies over the left
-  corner of the hint's box at 390×844 (about 32×31 px). The hint's text stays clear, and the hint
-  isn't clickable.
-- On a 390 px phone the open floor row is 484 px long, so the last two floors (Brick
-  baseplate, Lava) are off the screen.
+- Since step 30 START and its three rows (players, view, floor) stand alone in the middle. They fit
+  every window measured from 1280×800 down to 320×568, but not a phone held sideways: at 568×320
+  the floor row is off the bottom of the screen (the view row already was by 3 px in step 29).
+- On a 390 px phone the floor row wraps onto two lines (7 and 3 floors).
+- With the keyboard hint (phones and tablets), START and its rows sit 45 px lower; at 390×844 the
+  floor row still ends 112 px above the bottom.
 
 ## no-webgl
 

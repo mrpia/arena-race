@@ -55,76 +55,27 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 
-// The buttons on the left, for the view and the floor: a click opens a row of every choice next
-// to the button, with the current one outlined. Picking one closes the row, and so does clicking
-// anywhere else or pressing Escape. `which` names the elements: #camera, #camera-control and
-// #camera-picker. Gives back a function that shows the current choice on the button and in the row.
-const pickerRows: HTMLDivElement[] = [];
-function sidePicker<N extends string>(
-  which: string,
-  names: N[],
-  look: (name: N) => { text: string; title: string },
-  pick: (name: N) => void,
-): (current: N, buttonTitle: string) => void {
-  const control = document.querySelector<HTMLDivElement>(`#${which}-control`)!;
-  const button = document.querySelector<HTMLButtonElement>(`#${which}`)!;
-  const row = document.querySelector<HTMLDivElement>(`#${which}-picker`)!;
-  pickerRows.push(row);
-  const choices = names.map((name) => {
-    const choice = document.createElement('button');
-    choice.type = 'button';
-    choice.className = 'emoji-button';
-    choice.textContent = look(name).text;
-    choice.title = look(name).title;
-    choice.addEventListener('click', () => {
-      pick(name);
-      row.hidden = true;
-      // Let go of focus, or Space (a player's drift key) would click it again.
-      choice.blur();
-    });
-    row.append(choice);
-    return { name, choice };
-  });
-  button.addEventListener('click', () => {
-    row.hidden = !row.hidden;
-    button.blur();
-  });
-  // A click outside closes the row; so a click on the other button closes this row as it opens its own.
-  window.addEventListener('pointerdown', (e) => {
-    if (!control.contains(e.target as Node)) row.hidden = true;
-  });
-  return (current, buttonTitle) => {
-    button.textContent = look(current).text;
-    button.title = buttonTitle;
-    for (const c of choices) c.choice.classList.toggle('chosen', c.name === current);
-  };
-}
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'Escape') for (const row of pickerRows) row.hidden = true;
-});
-
-// The view: camera button on the left. The same views sit in a row under the start button, between
-// the keys that go back and forward (VIEW_KEYS).
-const cameraNames = Object.keys(CAMERAS) as CameraName[];
-const showCameraChoice = sidePicker(
-  'camera',
-  cameraNames,
-  (name) => ({ text: CAMERAS[name].name, title: `Camera: ${CAMERAS[name].name}` }),
-  (name) => showCamera(name),
-);
-const viewChoices = cameraNames.map((name) => {
+// A button in one of the rows under START. Picking it lets go of focus, or Space (a player's drift
+// key) would click it again.
+function choiceButton(text: string, title: string, pick: () => void): HTMLButtonElement {
   const choice = document.createElement('button');
   choice.type = 'button';
   choice.className = 'emoji-button';
-  choice.textContent = CAMERAS[name].name;
-  choice.title = `Camera: ${CAMERAS[name].name}`;
+  choice.textContent = text;
+  choice.title = title;
   choice.addEventListener('click', () => {
-    showCamera(name);
-    // Let go of focus, or Space (a player's drift key) would click it again.
+    pick();
     choice.blur();
   });
-  return { name, choice };
-});
+  return choice;
+}
+
+// The view: a row under the start button, between the keys that go back and forward (VIEW_KEYS).
+const cameraNames = Object.keys(CAMERAS) as CameraName[];
+const viewChoices = cameraNames.map((name) => ({
+  name,
+  choice: choiceButton(CAMERAS[name].name, `Camera: ${CAMERAS[name].name}`, () => showCamera(name)),
+}));
 function keyCap(code: string): HTMLSpanElement {
   const cap = document.createElement('span');
   cap.className = 'key';
@@ -139,7 +90,6 @@ let cameraName: CameraName = CAMERA;
 function showCamera(name: CameraName): void {
   cameraName = name;
   setCamera(name);
-  showCameraChoice(name, `Camera: ${CAMERAS[name].name} (click to pick another)`);
   for (const c of viewChoices) c.choice.classList.toggle('chosen', c.name === name);
 }
 // One view forward (1) or back (-1) in CAMERAS, round and round.
@@ -149,16 +99,15 @@ function stepCamera(step: 1 | -1): void {
 }
 showCamera(CAMERA);
 
-// The floor: the button under the camera button.
-const showFloorChoice = sidePicker(
-  'floor',
-  Object.keys(FLOORS) as FloorName[],
-  (name) => ({ text: FLOORS[name].emoji, title: FLOORS[name].name }),
-  (name) => chooseFloor(name),
-);
+// The floor: a row under the view row, with every floor in FLOORS.
+const floorChoices = (Object.keys(FLOORS) as FloorName[]).map((name) => ({
+  name,
+  choice: choiceButton(FLOORS[name].emoji, FLOORS[name].name, () => chooseFloor(name)),
+}));
+document.querySelector<HTMLDivElement>('#floor-choices')!.append(...floorChoices.map((c) => c.choice));
 function chooseFloor(name: FloorName): void {
   setFloor(name);
-  showFloorChoice(name, `Floor: ${FLOORS[name].name} (click to pick another)`);
+  for (const c of floorChoices) c.choice.classList.toggle('chosen', c.name === name);
 }
 chooseFloor(FLOOR);
 
@@ -204,7 +153,7 @@ quitButton.addEventListener('click', () => {
 });
 
 // During a race the pause button is at the top; before and after it, the start button with the
-// player and view rows under it, and the GitHub icon.
+// player, view and floor rows under it, and the GitHub icon.
 function showRacing(racing: boolean): void {
   startArea.hidden = racing;
   githubLink.hidden = racing;
@@ -213,7 +162,7 @@ function showRacing(racing: boolean): void {
 }
 
 // The start button in the middle: puts the cars at the start line and begins the countdown.
-// It comes back after each race, with the same number of players and the same view.
+// It comes back after each race, with the same number of players, view and floor.
 const startArea = document.querySelector<HTMLDivElement>('#start-area')!;
 const startButton = document.querySelector<HTMLButtonElement>('#start')!;
 startButton.textContent = RACE.startText;
@@ -228,21 +177,16 @@ startButton.addEventListener('click', () => {
 // The number of players, in a row under the start button: the cat alone (racing against the clock)
 // or the cat and the dog. The cars on the start line follow the choice, so the riding views and the
 // top bar already look like the race will.
-const playerChoices = ([1, 2] as const).map((count) => {
-  const choice = document.createElement('button');
-  choice.type = 'button';
-  choice.className = 'emoji-button';
-  choice.textContent = PLAYERS.slice(0, count)
-    .map((cfg) => cfg.emoji)
-    .join('');
-  choice.title = count === 1 ? RACE.playerTitles.one : RACE.playerTitles.two;
-  choice.addEventListener('click', () => {
-    choosePlayers(count);
-    // Let go of focus, or Space (a player's drift key) would click it again.
-    choice.blur();
-  });
-  return { count, choice };
-});
+const playerChoices = ([1, 2] as const).map((count) => ({
+  count,
+  choice: choiceButton(
+    PLAYERS.slice(0, count)
+      .map((cfg) => cfg.emoji)
+      .join(''),
+    count === 1 ? RACE.playerTitles.one : RACE.playerTitles.two,
+    () => choosePlayers(count),
+  ),
+}));
 document.querySelector<HTMLDivElement>('#player-choices')!.append(...playerChoices.map((c) => c.choice));
 function choosePlayers(count: 1 | 2): void {
   if (count !== playerCount) {

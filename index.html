@@ -10,12 +10,6 @@
       body { display: flex; align-items: center; justify-content: center; overflow: hidden; }
       /* The 3D scene, with the HUD's see-through canvas on top of it. */
       canvas { display: block; position: fixed; left: 0; top: 0; }
-      /* z-index: the open floor row must lie on top of the start button and its rows, or they swallow its clicks. */
-      #side-controls {
-        position: fixed; left: 12px; top: 50%; transform: translateY(-50%); z-index: 1;
-        display: flex; flex-direction: column; align-items: center; gap: 16px;
-        user-select: none;
-      }
       .emoji-button {
         width: 36px; height: 36px; padding: 0; cursor: pointer;
         font: 20px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif; line-height: 1;
@@ -23,15 +17,6 @@
       }
       .emoji-button:hover { background: #fff; }
       .emoji-button.chosen { outline: 3px solid #ffd43b; outline-offset: 1px; }
-      #camera, #camera-picker .emoji-button { font-size: 15px; font-weight: bold; }
-      /* The buttons on the left each open a row of every choice to their right. */
-      .picker-control { position: relative; }
-      .picker {
-        position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
-        display: flex; gap: 6px; padding: 6px; border-radius: 10px;
-        background: rgba(20, 24, 34, 0.92); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-      }
-      .picker[hidden] { display: none; }
       /* The GitHub icon, and in its place during a race the pause button. */
       #github, #pause {
         position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
@@ -60,7 +45,7 @@
         font: bold 22px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
       }
       #keyboard-hint[hidden] { display: none; }
-      /* Under the start button: a row for the number of players, then a row for the view. Out of
+      /* Under the start button: a row each for the number of players, the view and the floor. Out of
          the flow, so the start button stays where it was and doesn't run into the winner's line
          above it. max-content: positioned from the middle of a narrow button, the rows would
          otherwise only get half its width. */
@@ -68,8 +53,10 @@
         position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%);
         display: flex; flex-direction: column; align-items: center; gap: 10px; width: max-content;
       }
+      /* A row too long for the window (the floors, on a phone) wraps onto a second line. */
       .choice-row {
-        display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px;
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+        padding: 6px 10px; border-radius: 12px; max-width: calc(100vw - 32px); box-sizing: border-box;
         background: rgba(20, 24, 34, 0.92); user-select: none;
       }
       /* Room for two animals side by side on the two-player choice. */
@@ -107,22 +94,13 @@
         <button id="quit" class="start" type="button"></button>
       </div>
     </div>
-    <div id="side-controls">
-      <div id="camera-control" class="picker-control">
-        <button id="camera" class="emoji-button" type="button"></button>
-        <div id="camera-picker" class="picker" hidden></div>
-      </div>
-      <div id="floor-control" class="picker-control">
-        <button id="floor" class="emoji-button" type="button"></button>
-        <div id="floor-picker" class="picker" hidden></div>
-      </div>
-    </div>
     <div id="start-area">
       <p id="keyboard-hint" hidden></p>
       <button id="start" class="start" type="button"></button>
       <div id="start-choices">
         <div id="player-choices" class="choice-row"></div>
         <div id="view-choices" class="choice-row"></div>
+        <div id="floor-choices" class="choice-row"></div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
