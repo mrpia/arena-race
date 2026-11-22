@@ -1,36 +1,42 @@
 // The race track, painted on top of whichever floor is picked. Its shape comes from track.ts.
 // The tire walls stand on the floor in 3D (scene.ts); only the floor under them is painted here.
+// Ramps and bridges are 3D too (scene.ts): only the road lying on the floor is painted.
 import { TIRES, TRACK } from '../config';
-import { getTrack, trackDirection, type TrackPoint } from '../track';
+import { getTrack, isRaised, type Track, trackDirection, type TrackPoint } from '../track';
 import { floorEllipse, floorPolygon } from './shapes';
 
 export function paintTrack(ctx: CanvasRenderingContext2D): void {
-  const { middle, halfWidth, tires } = getTrack();
+  const track = getTrack();
+  const { middle, halfWidth, tires } = track;
   paintUnderTires(ctx, tires);
   const colors = TRACK.colors;
 
-  paintKerbs(ctx, middle, halfWidth);
+  paintKerbs(ctx, track);
 
   // A white layer goes first and is a little wider than the asphalt, so it peeks out as the edge lines.
   ctx.fillStyle = colors.edge;
-  paintBand(ctx, middle, halfWidth);
+  paintBand(ctx, track, halfWidth);
   ctx.fillStyle = colors.asphalt;
-  paintBand(ctx, middle, halfWidth - TRACK.edgeLine);
+  paintBand(ctx, track, halfWidth - TRACK.edgeLine);
 
   paintStartLine(ctx, middle[0], halfWidth);
 }
 
-// Fill everything up to `r` away from the middle of the track, in the current fill color.
+// Fill everything up to `r` away from the middle of the track on the floor, in the current fill color.
 // Strips between neighboring points give clean, straight edges. Circles on every point fill in
 // the inside of tight bends, where the strips fold over themselves.
-function paintBand(ctx: CanvasRenderingContext2D, middle: TrackPoint[], r: number): void {
+function paintBand(ctx: CanvasRenderingContext2D, track: Track, r: number): void {
+  const { middle, heights } = track;
   const n = middle.length;
   ctx.beginPath();
-  for (const p of middle) floorEllipse(ctx, p.x, p.y, r, r, 16);
+  middle.forEach((p, i) => {
+    if (heights[i] === 0) floorEllipse(ctx, p.x, p.y, r, r, 16);
+  });
   ctx.fill();
 
   ctx.beginPath();
   for (let i = 0; i < n; i++) {
+    if (isRaised(track, i)) continue;
     const a = middle[i];
     const b = middle[(i + 1) % n];
     const dirA = trackDirection(i);
@@ -54,8 +60,9 @@ function offset(p: TrackPoint, dir: { dx: number; dy: number }, forward: number,
   return { x: p.x + dir.dx * forward - dir.dy * side, y: p.y + dir.dy * forward + dir.dx * side };
 }
 
-// Red and white kerbs along both edges, wherever the track bends sharply.
-function paintKerbs(ctx: CanvasRenderingContext2D, middle: TrackPoint[], halfWidth: number): void {
+// Red and white kerbs along both edges, wherever the track bends sharply on the floor.
+function paintKerbs(ctx: CanvasRenderingContext2D, track: Track): void {
+  const { middle, halfWidth } = track;
   const n = middle.length;
   const tightest = TRACK.kerbCorners * 2 * halfWidth; // bends with a radius smaller than this get kerbs
   const inside = halfWidth - TRACK.edgeLine; // tucked under the edge line, so there's no gap
@@ -76,7 +83,7 @@ function paintKerbs(ctx: CanvasRenderingContext2D, middle: TrackPoint[], halfWid
   for (let i = 0; i < n; i++) {
     // Skip a lonely kerb stripe, and fill a one-stripe gap between two kerbs.
     const kerb = (isBend(i) && (isBend(i - 1) || isBend(i + 1))) || (isBend(i - 1) && isBend(i + 1));
-    if (!kerb) continue;
+    if (!kerb || isRaised(track, i)) continue;
 
     const a = middle[i];
     const b = middle[(i + 1) % n];

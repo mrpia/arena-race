@@ -110,6 +110,8 @@ export function buildCar(config: PlayerConfig): Group {
   // can leave them out (camera.ts) while every other camera still sees them.
   for (const part of [windshield, helmet, visor]) part.layers.set(carLayer(config));
   movingParts.set(car, { frontWheels, leaning });
+  // Turn first, then tip the nose up or down, then tip sideways (see placeCar).
+  car.rotation.order = 'YZX';
   return car;
 }
 
@@ -120,9 +122,15 @@ export function carLayer(config: PlayerConfig): number {
 }
 
 // Move the car to where the player is now, point its front wheels where it steers, and lean its body.
+// On a ramp the whole car tips with the road: nose up going uphill, and sideways when the road
+// slopes down to one side of the car.
 export function placeCar(car: Group, p: Player): void {
-  car.position.set(p.x, 0, p.y);
+  car.position.set(p.x, p.z, p.y);
   car.rotation.y = -p.angle; // turning toward +y on the floor is turning the other way round the scene's up axis
+  const cos = Math.cos(p.angle);
+  const sin = Math.sin(p.angle);
+  car.rotation.z = Math.atan(p.slope.x * cos + p.slope.y * sin); // the road climbs this much toward the nose
+  car.rotation.x = -Math.atan(-p.slope.x * sin + p.slope.y * cos); // and this much toward the car's right side
   const parts = movingParts.get(car);
   if (!parts) return;
   const steer = -p.wheelTurn * ((CAR.steer.angle * Math.PI) / 180); // the same way round as the car itself

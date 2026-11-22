@@ -45,8 +45,10 @@ to change.
   lays on the floor, once. Shapes shared by floors live in `floors/shapes.ts`; use its `glow()`
   rather than `shadowBlur`. Parts that throb go in a separate `glow` painter (see lava): never
   paint a floor again every frame, it dropped the game to 8 fps (step 19).
-- The race track lies on top of every floor: `TRACK` in `config.ts`, turned into a loop in world
-  units by `track.ts` and painted by `floors/track.ts` (not a floor, so not in `FLOORS`).
+- The race track lies on top of every floor: each track's points are in `TRACKS` in `config.ts`
+  (what they share in `TRACK`), turned into a loop in world units by `track.ts`. The part on the
+  floor is painted by `floors/track.ts` (not a floor, so not in `FLOORS`); ramps and bridges (a
+  third number in a point lifts the road) are built in 3D by `scene.ts`.
 - Keys are `KeyboardEvent.code` values. Keep the two players' controls apart
   (P1 left side of the keyboard, P2 arrows/right side).
 - Both players must stay equally strong unless the kids ask for an asymmetric game.

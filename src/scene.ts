@@ -1,5 +1,5 @@
-// The 3D scene: the floor with the track painted on it, the tire walls, the cars, the skid marks,
-// and the sun that throws the shadows. camera.ts says where the scene is seen from, and which part
+// The 3D scene: the floor with the track painted on it, the ramps and bridges, the tire walls, the
+// cars, the skid marks, and the sun that throws the shadows. camera.ts says where the scene is seen from, and which part
 // of the screen each camera fills.
 // A spot (x, y) on the floor is (x, 0, y) in the scene; height above the floor is the scene's y axis.
 import {
@@ -8,10 +8,12 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  Color,
   DirectionalLight,
   DoubleSide,
   DynamicDrawUsage,
-  type Group,
+  Float32BufferAttribute,
+  Group,
   InstancedMesh,
   Matrix4,
   Mesh,
@@ -27,12 +29,12 @@ import {
 } from 'three';
 import { currentCamera, ridesAlong, screenParts } from './camera';
 import { buildCar, placeCar } from './cars';
-import { ARENA, COLORS, type PlayerConfig, SCENE, SKID_MARKS, TIRES, VIEW } from './config';
+import { ARENA, BRIDGE, COLORS, type PlayerConfig, SCENE, SKID_MARKS, TIRES, TRACK, VIEW } from './config';
 import { cssColor } from './cssColor';
 import { currentFloor, floorPulse, floorWall, paintFloor, paintFloorGlow } from './floors';
 import type { Player } from './player';
 import { skidMarks } from './skidmarks';
-import { getTrack, type Track } from './track';
+import { ceilingAt, edgeSpots, getTrack, overRoad, raisedStretches, type Track } from './track';
 
 const renderer = new WebGLRenderer({ canvas: document.querySelector<HTMLCanvasElement>('#scene')!, antialias: true });
 renderer.shadowMap.enabled = true;
@@ -96,6 +98,23 @@ const marks = new Mesh(
 marks.frustumCulled = false; // they're all over the floor and move every frame
 scene.add(marks);
 
+// Ramps and bridges: the parts of the road lifted off the floor (a third number in a track's points).
+// The road on top has white edges and red and white railings. Below it, concrete sides go down to the
+// floor, except over a road that passes under: there the road is a slab BRIDGE.deck thick, and
+// concrete walls stand on both sides of the road underneath. The ones cars bump into are in track.ts.
+const bridges = new Group();
+scene.add(bridges);
+// Drawn a little in front of the floor, so the floor picture doesn't flicker through where a ramp starts.
+const roadPaint = new MeshLambertMaterial({
+  vertexColors: true,
+  side: DoubleSide,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -4,
+});
+const railingPaint = new MeshLambertMaterial({ vertexColors: true, side: DoubleSide });
+const concrete = new MeshLambertMaterial({ color: BRIDGE.colors.sides, side: DoubleSide });
+
 const cars = new Map<PlayerConfig, Group>();
 
 let builtFor: Track | null = null;
@@ -132,6 +151,7 @@ function build(track: Track): void {
   });
   tires.castShadow = tires.receiveShadow = true;
   scene.add(tires);
+  buildBridges(track);
 
   // The sun shines from SCENE.sunFrom, SCENE.sunHeight above the floor. Its shadows cover the whole arena.
   const reach = Math.hypot(W, H);
@@ -151,6 +171,135 @@ function build(track: Track): void {
   sun.intensity = (Math.PI * SCENE.shadowDarkness) / Math.sin(up);
 
   builtFor = track;
+}
+
+type Spot = { x: number; y: number };
+
+function mix(a: Spot, b: Spot, k = 0.5): Spot {
+  return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
+}
+
+// How far along the line from a to b the spot p is: 0 at a, 1 at b.
+function fraction(p: Spot, a: Spot, b: Spot): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  return ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1);
+}
+
+// The spots of a line, plus a pair of spots right where `inside` changes between two of them, so a
+// wall made of pieces between the spots starts or stops exactly there.
+function withEdges(spots: Spot[], inside: (p: Spot) => boolean): Spot[] {
+  const out = [spots[0]];
+  for (let s = 1; s < spots.length; s++) {
+    const [a, b] = [spots[s - 1], spots[s]];
+    if (inside(a) !== inside(b)) {
+      let [lo, hi] = [0, 1];
+      for (let k = 0; k < 20; k++) {
+        const mid = (lo + hi) / 2;
+        if (inside(mix(a, b, mid)) === inside(a)) lo = mid;
+        else hi = mid;
+      }
+      out.push(mix(a, b, lo), mix(a, b, hi));
+    }
+    out.push(b);
+  }
+  return out;
+}
+
+// Corners for a mesh: each quad is two triangles, with a color per corner if `colors` is given.
+class Shapes {
+  corners: number[] = [];
+  colors: number[] = [];
+  quad(a: number[], b: number[], c: number[], d: number[], color?: Color): void {
+    for (const p of [a, b, c, a, c, d]) {
+      this.corners.push(p[0], p[1], p[2]);
+      if (color) this.colors.push(color.r, color.g, color.b);
+    }
+  }
+  mesh(paint: MeshLambertMaterial): Mesh {
+    const shape = new BufferGeometry();
+    shape.setAttribute('position', new Float32BufferAttribute(this.corners, 3));
+    if (this.colors.length > 0) shape.setAttribute('color', new Float32BufferAttribute(this.colors, 3));
+    shape.computeVertexNormals();
+    const mesh = new Mesh(shape, paint);
+    mesh.castShadow = mesh.receiveShadow = true;
+    return mesh;
+  }
+}
+
+function buildBridges(track: Track): void {
+  for (const old of bridges.children) (old as Mesh).geometry.dispose();
+  bridges.clear();
+  const { middle, directions, heights, halfWidth } = track;
+  const n = middle.length;
+  const edge = new Color(TRACK.colors.edge);
+  const asphalt = new Color(TRACK.colors.asphalt);
+  const railing = BRIDGE.colors.railing.map((c) => new Color(c));
+  const road = new Shapes();
+  const rails = new Shapes();
+  const sides = new Shapes();
+  // (x, y) on the floor at height h, as a corner in the scene.
+  const at = (p: { x: number; y: number }, h: number) => [p.x, h, p.y];
+  // The spot `side` to the right of middle point i.
+  const across = (i: number, side: number) => {
+    const m = middle[i % n];
+    const d = directions[i % n];
+    return { x: m.x - d.dy * side, y: m.y + d.dx * side };
+  };
+  const passage = halfWidth + BRIDGE.underpass;
+
+  for (const { from, to } of raisedStretches(track)) {
+    for (let k = from; k < to; k++) {
+      const [i, j] = [k % n, (k + 1) % n];
+      const [hi, hj] = [heights[i], heights[j]];
+      // The road on top: white edge, asphalt, white edge.
+      const lines = [-halfWidth, -halfWidth + TRACK.edgeLine, halfWidth - TRACK.edgeLine, halfWidth];
+      for (let l = 0; l < 3; l++) {
+        const [s1, s2] = [lines[l], lines[l + 1]];
+        road.quad(at(across(i, s1), hi), at(across(j, s1), hj), at(across(j, s2), hj), at(across(i, s2), hi), l === 1 ? asphalt : edge);
+      }
+      for (const side of [-halfWidth, halfWidth]) {
+        // A railing along each edge, red and white in turns.
+        const [a, b] = [across(i, side), across(j, side)];
+        rails.quad(at(a, hi), at(b, hj), at(b, hj + BRIDGE.railing), at(a, hi + BRIDGE.railing), railing[k % 2]);
+        // The side, down to the floor, or down to the underside over a road passing under. Made
+        // of short pieces, cut exactly where the opening over that road ends, at its walls.
+        const open = (p: Spot) => overRoad(track, p.x, p.y, i, passage);
+        const spots = withEdges([...edgeSpots(track, i, side, 2), b], open);
+        const h = (p: Spot) => hi + (hj - hi) * fraction(p, a, b);
+        for (let s = 0; s + 1 < spots.length; s++) {
+          const [p, q] = [spots[s], spots[s + 1]];
+          const [hp, hq] = [h(p), h(q)];
+          const under = open(mix(p, q)) ? BRIDGE.deck : Infinity; // how far the side reaches down
+          sides.quad(at(p, Math.max(0, hp - under)), at(q, Math.max(0, hq - under)), at(q, hq), at(p, hp));
+        }
+      }
+      // The underside, where a road passes under. Elsewhere it's hidden inside the sides.
+      if (hi > BRIDGE.deck && hj > BRIDGE.deck) {
+        const [a1, a2, b1, b2] = [across(i, -halfWidth), across(i, halfWidth), across(j, -halfWidth), across(j, halfWidth)];
+        sides.quad(at(a1, hi - BRIDGE.deck), at(b1, hj - BRIDGE.deck), at(b2, hj - BRIDGE.deck), at(a2, hi - BRIDGE.deck));
+      }
+    }
+  }
+
+  // Walls beside a road where it passes under a bridge, up to the underside of the bridge.
+  for (let i = 0; i < n; i++) {
+    if (heights[i] > 0 || heights[(i + 1) % n] > 0) continue;
+    for (const side of [-passage, passage]) {
+      const covered = (p: Spot) => ceilingAt(p.x, p.y) !== null;
+      const spots = withEdges([...edgeSpots(track, i, side, 2), across(i + 1, side)], covered);
+      for (let s = 0; s + 1 < spots.length; s++) {
+        const [p, q] = [spots[s], spots[s + 1]];
+        if (!covered(mix(p, q))) continue;
+        // Right at the edge of the bridge, the spot just outside takes the height of its neighbor.
+        const t1 = ceilingAt(p.x, p.y) ?? ceilingAt(q.x, q.y)!;
+        const t2 = ceilingAt(q.x, q.y) ?? t1;
+        sides.quad(at(p, 0), at(q, 0), at(q, t2), at(p, t1));
+      }
+    }
+  }
+
+  if (road.corners.length > 0) bridges.add(road.mesh(roadPaint), rails.mesh(railingPaint), sides.mesh(concrete));
 }
 
 // Paint the floor picture and the glow picture, in world units. Only when the floor or the arena changes.
@@ -177,8 +326,9 @@ function updateSkidMarks(): void {
     const length = Math.hypot(m.x2 - m.x1, m.y2 - m.y1) || 1;
     const sx = (-(m.y2 - m.y1) / length) * half; // half the mark's width, across it
     const sy = ((m.x2 - m.x1) / length) * half;
+    const [z1, z2] = [m.z1 + lift, m.z2 + lift]; // on the floor, or on a ramp or a bridge
     markCorners.set(
-      [m.x1 - sx, lift, m.y1 - sy, m.x1 + sx, lift, m.y1 + sy, m.x2 + sx, lift, m.y2 + sy, m.x2 - sx, lift, m.y2 - sy],
+      [m.x1 - sx, z1, m.y1 - sy, m.x1 + sx, z1, m.y1 + sy, m.x2 + sx, z2, m.y2 + sy, m.x2 - sx, z2, m.y2 - sy],
       i * 12,
     );
     const shade = markPaint.opacity * Math.max(0, 1 - m.age / SKID_MARKS.fadeTime);

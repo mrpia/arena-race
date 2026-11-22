@@ -58,7 +58,9 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   test browser: in step 25 one ran at 740% CPU and every view measured 40 to 44. If all views drop
   alike, look at `ps` before blaming the change.
 - The fps scripts step through the views with K, the next-view key (it works before a race). Until
-  step 25 they clicked the camera button, which now opens a row instead.
+  step 25 they clicked the camera button, which now opens a row instead. `fps-per-view.cjs` in
+  the handover folder hides `#start-buttons`, which has been `#start-area` since step 29; step 31
+  measured with a copy that hides `#start-area` and clicks the track and floor rows.
 - To look at the scene from any angle (a car from the front, say), catch three.js' renderer and
   scene before the page loads: `page.addInitScript` that sets `window.__THREE_DEVTOOLS__` to an
   `EventTarget` and keeps the `detail` of each `observe` event (the renderer, then the scene).
@@ -78,6 +80,22 @@ fell into. The rules for working on the game are in [CLAUDE.md](../CLAUDE.md).
   in corners tighter than half the track width, so cut with real lines; and when the far
   stretch is short, shrink the safety margin, or the range flips round and covers almost the
   whole track.
+- The leak test with bridges (step 31) floods only the floor. A spot also has to be clear of
+  the wall posts (`Track.walls`, car radius plus `WALL_POST`), and it's not reachable inside a
+  raised road's outline, except beside a road passing under it (`halfWidth + BRIDGE.underpass`
+  from that road's middle). Put cuts only on the floor, away from crossings, so a bridge always
+  lies inside one of the two ranges and needs no modeling. Count a leak only if it skips more
+  than `2 × (halfWidth + TIRES.runoff)` along the track: the tire walls allow cutting across
+  less than that on the grass inside a tight corner, and in step 31 a short range between two
+  cuts in one corner of the figure 8 was reported as a leak until this rule went in. Check the
+  test isn't blind: treat the crossing as flat (no walls, no raised outlines) and it must leak.
+- To look at the game's own cars in a given spot (on the bridge, under it), catch them before
+  clicking START: wrap `Player.prototype.findRoad` so it adds `this` to a set on `window`, since
+  the constructor calls it. Start, pause with Escape (the scene keeps drawing, hide
+  `#pause-menu`), then move a car: set `x`, `y`, `angle`, `along` (its middle point),
+  `followed` (`getTrack()`) and `raised`, and call `findRoad()`. Setting `along` first keeps a
+  car moved to the road under the bridge from being taken for one on it. In a two-player race J
+  and K don't switch the view; call `setCamera()` from `camera.ts`.
 - To test like a phone (the keyboard hint), turn on touch emulation through a CDP session
   (`Emulation.setTouchEmulationEnabled`), then reload: `pointer: coarse` matches after that.
   Emulation left on by one run was still on in the next, so close the browser afterwards.
@@ -105,11 +123,18 @@ is in world units.
   onto the grass, 8° (the most) into a tire. Back to level within about 0.5 s.
 - Track width: 16% of the arena height. Tires sit 40 units from the track's edge; a car's
   middle gets about 14 units onto the grass before it touches them.
-- The built game is about 157 kB gzipped (607 kB before gzip), almost all of it three.js:
-  `index.html` and one JS file. Before three.js (step 17) it was about 12 kB.
+- The built game is about 161 kB gzipped (615 kB before gzip; 157 and 607 before step 31),
+  almost all of it three.js: `index.html` and one JS file. Before three.js (step 17) it was
+  about 12 kB.
 - The 3D scene at 1280×800: 348 tires, 696 rings stacked two high, about 118,000 triangles and
   21 draw calls per frame, plus the same again for the shadows. In split screen the scene is drawn
   twice per frame and the shadows once.
+- The figure 8 (step 31) at 1280×800: lap about 2751 units (about 10.6 s flat out, worked
+  out), 224 middle points, 295 tires and 160 wall posts. The bridge is 46 high, its underside
+  40; each ramp is about 155 units long, about 24° at its steepest (worked out from the points).
+  On the ramps and the bridge a car's middle gets 36 from the middle of the road; under the
+  bridge, 44. Measured on the adult's card: 60 fps in all four views, two players, on grass and
+  lava, with and without Chrome's Vulkan feature.
 
 ## Traps we hit
 
@@ -176,3 +201,15 @@ is in world units.
   tires (step 27). To see how a car looks in a given state, drive a test car instead, then call
   `placeCar()` (from `cars.ts`) on the scene's car with the test car, inside your own render loop
   (see the recipe for looking at the scene from any angle).
+- A test page busy drawing in software once let `page.goto()` time out after 30 s (step 31). Wait
+  for `domcontentloaded` with a longer timeout instead.
+- Three things a test car found on the figure 8 that the middle line didn't (step 31): the rows
+  of tires between the roads met at the corners of the crossing, right at the edge of the road
+  under the bridge, so a car in its lane hit them; the first post of a ramp's side wall stood
+  where the ramp leaves the floor, so a car in its lane hit it before it was on the ramp; and
+  the loops came within 72 units of the arena's edge, where the tires along the edge touch the
+  asphalt. Drive test laps in both lanes (`lane` 0.2 and 0.8), not only along the middle.
+- Screenshots at chosen spots miss what happens between them. In step 31 the riding camera dived
+  to the floor in front of every ramp, between two spots that looked fine; a review found it, and
+  logging the camera's height every step of a test lap (`followCars()` with the test car, then
+  `screenParts(1)[0].camera.position`) confirmed and later cleared it.

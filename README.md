@@ -1,8 +1,8 @@
 # Arena Race
 
 A race car game for one or two players on one keyboard: two cars race three laps round a
-track, or one races alone against the clock. Watch from above, or ride along behind the car
-or in the driver's seat.
+track, or one races alone against the clock. Two tracks: a Formula 1 track, and a figure 8
+with a bridge. Watch from above, or ride along behind the car or in the driver's seat.
 
 Play it at https://arena-race.mrpia.ch (you need a keyboard).
 
@@ -23,7 +23,8 @@ npm run dev        # opens http://localhost:5173
 | Player 2 | ← → | ↓ | Enter |
 
 Under the **START** button in the middle of the screen, pick 🐱 to race alone or 🐱🐶 for two
-players; the cars on the start line follow the choice. The page opens with two players
+players; the cars on the start line follow the choice. The rows below pick the view, the track
+and the floor. The page opens with two players
 (`RACE.firstPlayers`). Then click **START**. After the countdown (3, 2, 1, LOS!) the cars drive
 off; before that they can't move. `COUNTDOWN` in `config.ts` sets the texts and times. The lap
 each player is on shows next to their name. A lap only counts if you drove the whole way round,
@@ -40,7 +41,7 @@ toward the time. Texts and the key are in `PAUSE` in `config.ts`.
 - **🐱🐶, two players:** the first car to drive 3 laps wins (`RACE.laps`).
 - **🐱, one player:** player 1's car races alone against the clock, steered by either side's keys. The
   best time is kept in the browser. The track grows with the window, so a bigger window
-  means a longer lap: each window size, number of laps and track shape has its own record.
+  means a longer lap: each track, window size and number of laps has its own record.
 
 The cars always drive at the same speed (`PLAYER_SPEED` in `config.ts`); left and right
 turn them. Hold brake to drive at half speed (`BRAKE_SPEED`): half as fast makes the turn
@@ -48,14 +49,29 @@ twice as tight. Hold drift while steering and the tires lose grip: the car slide
 through the corner, about as tight as braking but faster, and leaves skid marks on the
 asphalt (`DRIFT`, `SKID_MARKS`). Up isn't used yet.
 
-The race track runs through the points in `TRACK.points` in `config.ts`, given as
-fractions of the arena. Move them to build your own track: points close together
-make a tight corner. Off the track the cars drive at `OFF_TRACK_SPEED`.
+The track row under START shows a small map of each track in `TRACKS` in `config.ts`: the
+Formula 1 track (`f1`, the one the page opens with, `FIRST_TRACK`) and the figure 8 (`eight`). Each
+track runs through its points, given as fractions of the arena. Move them to build your own
+track: points close together make a tight corner. Off the track the cars drive at
+`OFF_TRACK_SPEED`. What all tracks share (width, edge lines, kerbs, colors) is in `TRACK`.
+
+A third number in a point lifts the road off the floor there, in world units:
+`[0.5, 0.5, 46]` is 46 high (a car is about 23). Between points of different heights the road
+climbs or drops smoothly, as a ramp. That's how the figure 8's bridge works: the road from the
+bottom left to the top right climbs over the other road. On a ramp or a bridge, cars drive
+between red and white railings and bounce off them. Cars on the floor can't drive into the side
+of a ramp, only onto it at the bottom, and under the bridge concrete walls keep them on their own
+road. A car on the bridge and a car under it don't bump into each other. Seen from above (2D, 3D),
+a car under the bridge is hidden for a moment; riding along behind the car, the camera ducks so it
+fits under. `BRIDGE` in `config.ts` has the sizes and colors. Any track can get hills or bridges
+this way; where a track crosses itself, one of the two roads must be lifted, or the cars can jump
+across.
 
 Walls of old tires (`TIRES` in `config.ts`) run around the whole track, with a strip of
 grass in between. They're placed automatically from the track's shape, also between two
 parts of the track that come close, so there's no shortcut across the grass. Drive into
-them and you bounce back.
+them and you bounce back. Beside the road under a bridge they keep back as far as the walls
+under it, so the way in is as wide as the way under.
 
 Press the key left of `1` (`§` on Swiss keyboards, `` ` `` on US ones) to show which
 keys are held. Use it to check that your keyboard registers both players at once
@@ -77,20 +93,20 @@ example prompts for two-player games in general are in arena-starter's
 
 ## Where things are
 
-- `src/config.ts` – players, emojis, colors, speed, keys, camera views, floors. Start here.
+- `src/config.ts` – players, emojis, colors, speed, keys, camera views, tracks, floors. Start here.
 - `src/race.ts` – how far the race has got (start button, countdown, racing, finished), counting laps and picking the winner.
-- `src/player.ts` – driving, steering, braking, drifting, bouncing off tires, bumping into each other.
+- `src/player.ts` – driving, steering, braking, drifting, driving up ramps, bouncing off tires, walls and railings, bumping into each other.
 - `src/skidmarks.ts` – the skid marks drifting cars leave behind.
-- `src/records.ts` – the best one-player time, kept in the browser.
-- `src/track.ts` – the race track's shape: a smooth loop through `TRACK.points`, whether a spot is on the asphalt, and where the tire walls go.
-- `src/scene.ts` – the 3D scene: the floor, the tire walls, the skid marks, the sun and its shadows.
-- `src/cars.ts` – what a car looks like in 3D, with a white helmet for the driver.
-- `src/camera.ts` – the 2D and 3D cameras, aimed and zoomed so the floor fits the window, the cameras riding along with each car, and the split screen.
-- `src/hud.ts` – names, laps, keys, stopwatch, countdown, results and the track map in split screen, drawn flat on top of the scene.
+- `src/records.ts` – the best one-player time per track, kept in the browser.
+- `src/track.ts` – the picked track's shape: a smooth loop through its points with a height at every spot, whether a spot is on the asphalt, where each car is on its own road, and where the tire walls and the walls along ramps and under bridges go.
+- `src/scene.ts` – the 3D scene: the floor, the ramps and bridges, the tire walls, the skid marks, the sun and its shadows.
+- `src/cars.ts` – what a car looks like in 3D, with a white helmet for the driver, tipped with the road on a ramp.
+- `src/camera.ts` – the 2D and 3D cameras, aimed and zoomed so the floor fits the window, the cameras riding along with each car (ducking under bridges), and the split screen.
+- `src/hud.ts` – names, laps, keys, stopwatch, countdown, results and the track map in split screen, drawn flat on top of the scene, and the small maps in the track row.
 - `src/floors/` – one file per floor, `track.ts` that paints the race track on top of every floor, and `index.ts` with the list of floors. They paint a picture that `scene.ts` lays on the floor.
 - `src/cssColor.ts` – turns colors from `config.ts` into colors three.js understands.
 - `src/input.ts` – keyboard state: `isDown()` for holding, `wasPressed()` for single taps.
-- `src/main.ts` – canvas setup, the start button with the rows for players, view and floor under it, the GitHub link, the pause button and menu, and the game loop.
+- `src/main.ts` – canvas setup, the start button with the rows for players, view, track and floor under it, the GitHub link, the pause button and menu, and the game loop.
 - `index.html` – the page: the two canvases, the buttons, the pause menu and all the styles.
 
 Under START, below the players, a row picks the view: looking straight down (2D), a tilted
@@ -107,7 +123,7 @@ and how thick the floor is; `CAR` and `TIRES` how tall cars and tire walls are, 
 wheels turn when you steer, and `CAR.lean` how far the body leans in turns and when speeding up
 or slowing down (both only a look: they don't change how the car drives).
 
-The row under the views picks the floor, one of ten: grass, street, wooden floor, arcade, chess
+The row under the tracks picks the floor, one of ten: grass, street, wooden floor, arcade, chess
 board, frozen lake, moon, treasure map, brick baseplate and lava. A floor is only paint. The track
 lies on top of every one, and the cars drive the same on all of them, ice included. `FLOORS` in
 `config.ts` lists them and `FLOOR` sets the one the game starts on; each floor has its own values

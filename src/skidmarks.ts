@@ -7,13 +7,17 @@ export interface SkidMark {
   y1: number;
   x2: number;
   y2: number;
+  z1: number; // how high the floor or the road is under each end (on a ramp or a bridge)
+  z2: number;
   age: number; // seconds since it was made
 }
 
 let marks: SkidMark[] = [];
 
-export function addSkidMark(from: { x: number; y: number }, to: { x: number; y: number }): void {
-  marks.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y, age: 0 });
+type Spot = { x: number; y: number; z: number };
+
+export function addSkidMark(from: Spot, to: Spot): void {
+  marks.push({ x1: from.x, y1: from.y, z1: from.z, x2: to.x, y2: to.y, z2: to.z, age: 0 });
   if (marks.length > SKID_MARKS.max) marks.shift();
 }
 

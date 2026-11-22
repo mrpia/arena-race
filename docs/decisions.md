@@ -669,3 +669,74 @@ on the left, together with a track choice in the middle (step 31).
   bottom, as the view row already was by 3 px (`narrow-windows`).
 - Not checked: speed (only page elements changed), and whether the kids miss switching the view in
   the middle of a two-player race.
+
+## 31. A figure 8 with a bridge, and a track row (2026-11-22)
+
+**Asked (by the adult):** another race track, a figure 8 with a ramp and a bridge so the cars don't
+cross each other, and a way to pick the track in the middle of the start screen (with step 30).
+
+- Three choices, made for the kids. A low bridge (underside 40 units, just over the cars, short
+  ramps), rather than a high one (80, ramps twice as long and very steep in small windows); riding
+  along behind the car, the camera ducks so it fits under. Seen from above (2D, 3D), a car under
+  the bridge is hidden for a moment, rather than the bridge turning see-through. The track row shows
+  a small map of each track, drawn from its points, rather than an emoji per track.
+- Said before building: the game was flat, and at a crossing "the nearest track point" can be on
+  the other road. So heights went into the track, each car follows its own road step by step
+  (laps are counted from it too), and the walls know who is on the floor and who is on a ramp.
+- A point in `TRACKS` can have a third number, its height. Between points of different heights the
+  road climbs in an S, flat at both ends. Any track can get hills or bridges that way. The figure
+  8's road from the bottom left to the top right climbs to 46 over the other road.
+- On a ramp or the bridge, cars drive between red and white railings and bounce off them like off
+  the tires. A railing is a straight wall, so a car touches it with its side (half its width), not
+  with the round bumper it has for tires and other cars; with the bumper, cars in their start lanes
+  hit the railing where the ramp starts. A car that drives onto a ramp further out than the
+  railings allow is pushed toward the middle at 150 units per second (`BRIDGE.squeeze`); pushed all
+  at once, it jumped up to 16 units sideways in one step.
+- Cars on the floor bump into posts along the sides of a ramp wherever it's higher than a car's
+  ride height, and into concrete walls on both sides of the road under the bridge
+  (`BRIDGE.underpass`, 16 units beside the asphalt). Without them a car could leave the road before
+  the ramp, drive along its side and join the road below, skipping half the lap. At the very bottom
+  of a ramp a car can drive onto it from the side.
+- Cars only bump into each other when they're at about the same height, so a car on the bridge and
+  one under it pass.
+- The tire rows between the roads met at the corners of the crossing, right at the edge of the road
+  under the bridge: a car in its lane hit them. Tires beside that road now keep back as far as the
+  walls under the bridge, so the way in is as wide as the way under.
+- The figure 8 has a left loop and a right loop, so the inside lane of a corner (the `fair-start`
+  question) favors each player once per lap. Cars keep their speed up and down the ramps.
+- Defaults, said before building: the page opens on the F1 track (`FIRST_TRACK`) and doesn't
+  remember the choice, like the players and the view. Picking another track after a race takes the
+  result off the screen and puts the cars on the new start line, like picking the other number of
+  players. Each track keeps its own record; the F1 track's key is the same as before, so its
+  records stay.
+- The 3D parts: the road on top with white edges, concrete sides down to the floor, and over the
+  road below a slab 6 thick (`BRIDGE.deck`) with walls beside that road. Only the road on the floor
+  is painted on the floor picture. Cars tip with the slope; skid marks lie on the ramp; the riding
+  cameras rise with the car, and duck only where a road passes under a bridge
+  (`BRIDGE.cameraGap`, `BRIDGE.duckTime`); the split-screen map draws the bridge on top of the
+  road it crosses.
+- Laps still count from the nearest middle point, as before, so F1 records stay comparable (a
+  first version counted from the start of the stretch, which would have made every F1 time about
+  20 ms slower).
+- An independent review (a second Claude session reading the code) found three of the problems
+  above before the commit: the riding camera dived to the floor in front of every ramp (it took
+  ramps for bridges), the sideways jump onto a ramp, and the 20 ms. All three are fixed and
+  measured again.
+- The rows under START are now players, view, track, floor (`narrow-windows`,
+  `start-rows-cover-grid`).
+- Checked: typecheck; test cars on autopilot for laps in the middle and both start lanes at four
+  window sizes (laps counted through the crossing, no bounces at 1280×800, 1366×768 and 1920×1080);
+  a car on the bridge and one under it at the same spot (14 units apart, 46 high and on the floor,
+  never pushed); the riding camera's height through a whole lap (lower only under the bridge,
+  never less than 34); driving onto the ramp 25 to 50 units off the middle (at most 2.8 units
+  sideways per step); F1 laps counted exactly as before (1440 steps in both lanes); steering into the railings (held at 36 from the middle, stays up); cars on the
+  grass driving at both sides of both ramps (never got on); turning under the bridge (held at 44
+  by the walls); a leak test with bridges at 1280×800, 1024×600, 1366×768 and 1920×1080, and with
+  twice the grass (no shortcut on either track; with the crossing made flat, it finds them); the
+  F1 track unchanged (348 tires, no walls, same lap, same record key); separate records per track;
+  switching tracks after a race; all four views, split screen in the driver's seat (one car on the
+  bridge, one under it), the camera ducking, lava; the start rows at eight window sizes; 60 fps in
+  every view on the adult's card, on grass and lava, two players.
+- Not checked: how the bridge feels to the kids at full speed (the test browser draws about 5
+  frames per second), whether the ducking camera bothers anyone, and windows less than about 654
+  px tall, where the bridge is narrower than the start lanes (`narrow-bridge`).

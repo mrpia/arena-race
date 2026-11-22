@@ -76,7 +76,9 @@ small advantage. The suggestion was to swap start places between races.
 ## resize-mid-race
 
 Known issue: resizing the window during a race moves the track under the cars. They're only
-put back on the start line before the start.
+put back on the start line before the start. Since step 31 each car keeps the same share of the
+way round its own road, so a car under the bridge stays under it; after a big resize a car can
+still end up far from its road, in the tires, or pulled across by the railings.
 
 ## hud-on-phones
 
@@ -87,14 +89,31 @@ the default names, earlier with longer names.
 
 ## narrow-windows
 
-Known issue, measured in steps 15, 29 and 30:
+Known issue, measured in steps 15, 29, 30 and 31:
 
-- Since step 30 START and its three rows (players, view, floor) stand alone in the middle. They fit
-  every window measured from 1280×800 down to 320×568, but not a phone held sideways: at 568×320
-  the floor row is off the bottom of the screen (the view row already was by 3 px in step 29).
+- Since step 31 START has four rows under it (players, view, track, floor). They fit every window
+  measured from 1366×768 down to 800×600, and 420×800 and 390×844. At 320×568 the floor row's
+  second line is 53 px off the bottom, and at 568×320 (a phone held sideways) the track and floor
+  rows are off the screen.
 - On a 390 px phone the floor row wraps onto two lines (7 and 3 floors).
-- With the keyboard hint (phones and tablets), START and its rows sit 45 px lower; at 390×844 the
-  floor row still ends 112 px above the bottom.
+- With the keyboard hint (phones and tablets), START and its rows sit 45 px lower (measured in step
+  30, with three rows).
+
+## start-rows-cover-grid
+
+Known issue since steps 30 and 31: in 2D and 3D, the track and floor rows under START lie over the
+cars on the F1 track's start line (bottom middle) at 1280×800 and 1024×600. The 🐱/🐱🐶 row still
+shows which kind of race is on, and the riding views show the cars. Possible fixes: track and floor
+in one row, or the rows beside START instead of under it.
+
+## narrow-bridge
+
+Known issue since step 31: the track is 16% of the arena's height wide, but the cars keep their
+size. In windows less than about 654 px tall the railings on the figure 8's bridge are closer than
+the start lanes: at 1024×600 a car's middle gets 19 units from the middle of the bridge, and the
+lanes are 21 out, so cars in their lanes get squeezed inward where the ramp starts (bouncing if
+they keep steering out), and two cars side by side bump on the bridge. Worked out from
+`TRACK.width`, `CAR.width` and the start lanes, and seen with a test car at 1024×600.
 
 ## no-webgl
 

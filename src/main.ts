@@ -1,4 +1,20 @@
-import { CAMERA, CAMERAS, type CameraName, FLOOR, FLOORS, type FloorName, GITHUB, PAUSE, PLAYERS, RACE, VIEW, VIEW_KEYS } from './config';
+import {
+  CAMERA,
+  CAMERAS,
+  type CameraName,
+  FIRST_TRACK,
+  FLOOR,
+  FLOORS,
+  type FloorName,
+  GITHUB,
+  PAUSE,
+  PLAYERS,
+  RACE,
+  TRACKS,
+  type TrackName,
+  VIEW,
+  VIEW_KEYS,
+} from './config';
 import { endFrame, heldKeys, initInput, wasPressed } from './input';
 import { Player, separate } from './player';
 import { fitToScreen, followCars, setCamera } from './camera';
@@ -15,9 +31,10 @@ import {
   startCountdown,
   updateRace,
 } from './race';
-import { keyLabel, renderHud } from './hud';
+import { keyLabel, paintTrackPicture, renderHud } from './hud';
 import { renderScene, resizeScene } from './scene';
 import { clearSkidMarks, updateSkidMarks } from './skidmarks';
+import { currentTrack, setTrack } from './track';
 
 // The HUD's canvas lies on top of the 3D scene's canvas (scene.ts).
 const canvas = document.querySelector<HTMLCanvasElement>('#hud')!;
@@ -99,7 +116,28 @@ function stepCamera(step: 1 | -1): void {
 }
 showCamera(CAMERA);
 
-// The floor: a row under the view row, with every floor in FLOORS.
+// The track: a row under the view row, with a small map of every track in TRACKS. Picking another
+// one after a race takes the result off the screen (it belongs to the other track) and puts the cars
+// on the new start line, like picking the other number of players.
+const trackChoices = (Object.keys(TRACKS) as TrackName[]).map((name) => {
+  const choice = choiceButton('', TRACKS[name].name, () => chooseTrack(name));
+  const picture = document.createElement('canvas');
+  paintTrackPicture(picture, name);
+  choice.append(picture);
+  return { name, choice };
+});
+document.querySelector<HTMLDivElement>('#track-choices')!.append(...trackChoices.map((c) => c.choice));
+function chooseTrack(name: TrackName): void {
+  if (name !== currentTrack()) {
+    setTrack(name);
+    quitRace();
+    placeCarsAtStart();
+  }
+  for (const c of trackChoices) c.choice.classList.toggle('chosen', c.name === name);
+}
+chooseTrack(FIRST_TRACK);
+
+// The floor: a row under the track row, with every floor in FLOORS.
 const floorChoices = (Object.keys(FLOORS) as FloorName[]).map((name) => ({
   name,
   choice: choiceButton(FLOORS[name].emoji, FLOORS[name].name, () => chooseFloor(name)),
@@ -153,7 +191,7 @@ quitButton.addEventListener('click', () => {
 });
 
 // During a race the pause button is at the top; before and after it, the start button with the
-// player, view and floor rows under it, and the GitHub icon.
+// player, view, track and floor rows under it, and the GitHub icon.
 function showRacing(racing: boolean): void {
   startArea.hidden = racing;
   githubLink.hidden = racing;
@@ -162,7 +200,7 @@ function showRacing(racing: boolean): void {
 }
 
 // The start button in the middle: puts the cars at the start line and begins the countdown.
-// It comes back after each race, with the same number of players, view and floor.
+// It comes back after each race, with the same number of players, view, track and floor.
 const startArea = document.querySelector<HTMLDivElement>('#start-area')!;
 const startButton = document.querySelector<HTMLButtonElement>('#start')!;
 startButton.textContent = RACE.startText;

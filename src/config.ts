@@ -65,8 +65,10 @@ export const SPLIT_SCREEN = {
 
 // In split screen, a small map of the track at the top in the middle, with a dot for each car.
 // North is up, as in the 2D view. In small windows it shrinks to stay clear of the winner's line.
+// The track row under START shows the same kind of map for every track.
 export const TRACK_MAP = {
   width: 200, // in screen pixels; the height follows the arena's shape
+  rowWidth: 66, // the maps in the track row, in screen pixels
   top: 58, // from the top of the window to the map's box, just under the GitHub icon
   edge: 1.5, // the white lines along both edges of the track, in screen pixels
   carSize: 5, // how big each car's dot is (its radius), in screen pixels
@@ -201,42 +203,93 @@ export const COUNTDOWN = {
   },
 };
 
-// The race track. It lies on top of whichever floor is picked, and off the track the cars are slower.
+// A track's points: [x, y], or [x, y, height] to lift the road off the floor there (see TRACKS).
+export type TrackPoints = ([number, number] | [number, number, number])[];
+
+// The race tracks, for the track row under START, in the order it shows them. The name shows when the
+// mouse rests on a track. Each one lies on top of whichever floor is picked; off the track the cars
+// are slower.
+//
+// The middle of a track runs through its points, in fractions of the arena
+// (x: 0 = left edge, 1 = right edge; y: 0 = far edge, 1 = near edge).
+// It curves smoothly between them; points close together make a tight corner.
+// The first point is the start/finish line, and the cars drive from it toward the second.
+// A third number lifts the road that many world units off the floor at that point, like the bridge
+// on the figure 8. Between points of different heights the road climbs or drops smoothly, as a
+// ramp. Where a track crosses itself, lift one of the two roads above the cars (BRIDGE), or the
+// cars can jump across.
+// Every track keeps its own record, and moving a point starts a new one.
+export const TRACKS = {
+  f1: {
+    name: 'Formel 1',
+    points: [
+      [0.5, 0.867], // start/finish line
+      [0.7, 0.867],
+      [0.82, 0.85], // turn 1: a fast left
+      [0.885, 0.767],
+      [0.9, 0.633],
+      [0.9, 0.367],
+      [0.89, 0.2], // the hairpin: all the way round to the left
+      [0.82, 0.117],
+      [0.75, 0.2],
+      [0.74, 0.4],
+      [0.73, 0.533], // a right, into the middle
+      [0.66, 0.6],
+      [0.54, 0.6],
+      [0.49, 0.6], // the chicane: right, left, right
+      [0.44, 0.517],
+      [0.38, 0.5],
+      [0.33, 0.433],
+      [0.32, 0.3],
+      [0.3, 0.167], // a tight left at the top
+      [0.24, 0.133],
+      [0.16, 0.133],
+      [0.09, 0.2],
+      [0.08, 0.333],
+      [0.08, 0.7],
+      [0.1, 0.817],
+      [0.18, 0.867],
+      [0.3, 0.867],
+    ] as TrackPoints,
+  },
+  eight: {
+    name: 'Die Acht mit Brücke',
+    // A figure 8: the left loop turns left, the right loop turns right. The road from the bottom
+    // left to the top right climbs onto a bridge over the other road.
+    points: [
+      [0.15, 0.87], // start/finish line, at the bottom of the left loop
+      [0.21, 0.83],
+      [0.28, 0.729, 0], // the ramp up starts here
+      [0.411, 0.592, 46], // on the bridge
+      [0.5, 0.5, 46], // over the crossing
+      [0.589, 0.408, 46],
+      [0.72, 0.271, 0], // down again
+      [0.79, 0.17], // the right loop: right turns
+      [0.86, 0.13],
+      [0.9, 0.19],
+      [0.91, 0.35],
+      [0.91, 0.65],
+      [0.9, 0.81],
+      [0.86, 0.87],
+      [0.79, 0.83],
+      [0.72, 0.729],
+      [0.627, 0.632], // under the bridge
+      [0.373, 0.368],
+      [0.28, 0.271],
+      [0.21, 0.17], // the left loop: left turns
+      [0.14, 0.13],
+      [0.1, 0.19],
+      [0.09, 0.35],
+      [0.09, 0.65],
+      [0.1, 0.81],
+    ] as TrackPoints,
+  },
+};
+export type TrackName = keyof typeof TRACKS;
+export const FIRST_TRACK: TrackName = 'f1'; // the track the page opens with
+
+// What every track has in common.
 export const TRACK = {
-  // The middle of the track runs through these points, in fractions of the arena
-  // (x: 0 = left edge, 1 = right edge; y: 0 = far edge, 1 = near edge).
-  // It curves smoothly between them; points close together make a tight corner.
-  // The first point is the start/finish line, and the cars drive from it toward the second.
-  // Keep the track from touching itself, or the cars can jump across.
-  points: [
-    [0.5, 0.867], // start/finish line
-    [0.7, 0.867],
-    [0.82, 0.85], // turn 1: a fast left
-    [0.885, 0.767],
-    [0.9, 0.633],
-    [0.9, 0.367],
-    [0.89, 0.2], // the hairpin: all the way round to the left
-    [0.82, 0.117],
-    [0.75, 0.2],
-    [0.74, 0.4],
-    [0.73, 0.533], // a right, into the middle
-    [0.66, 0.6],
-    [0.54, 0.6],
-    [0.49, 0.6], // the chicane: right, left, right
-    [0.44, 0.517],
-    [0.38, 0.5],
-    [0.33, 0.433],
-    [0.32, 0.3],
-    [0.3, 0.167], // a tight left at the top
-    [0.24, 0.133],
-    [0.16, 0.133],
-    [0.09, 0.2],
-    [0.08, 0.333],
-    [0.08, 0.7],
-    [0.1, 0.817],
-    [0.18, 0.867],
-    [0.3, 0.867],
-  ] as [number, number][],
   width: 0.16, // compared to the arena's height, so the track keeps its shape in every window size
   edgeLine: 3, // thickness of the white lines along both edges, in world units
   kerb: 9, // width of the red and white kerbs, in world units
@@ -249,8 +302,27 @@ export const TRACK = {
   },
 };
 
+// Roads lifted off the floor (a third number in a track's points): ramps and bridges. On them, cars
+// drive between two low railings and bounce off them like off the tires. Cars on the floor can't
+// drive into the side of a ramp; they can only drive onto it where it starts. Cars on a bridge and
+// cars under it don't bump into each other. Sizes in world units; a car is about 23 high.
+export const BRIDGE = {
+  deck: 6, // how thick the road is where another road passes under it
+  railing: 5, // height of the railings along both edges
+  underpass: 16, // under a bridge, the walls on both sides stand this far from the edges of the road
+  cameraGap: 6, // riding along under a bridge, the camera stays at least this far below it
+  duckTime: 0.15, // about how many seconds that camera takes to duck under a bridge, or to come back up
+  // A car that drives onto a ramp further out than the railings allow is pushed toward the middle
+  // at this many units per second, instead of all at once (which looked like a jump).
+  squeeze: 150,
+  colors: {
+    sides: '#a8a49b', // concrete: the sides of a ramp, under a bridge, and the walls beside the road under it
+    railing: ['#d62828', '#f1f1f1'],
+  },
+};
+
 // Walls of old tires around the whole track, so nobody can take a shortcut across the grass.
-// They're placed automatically, so they follow the track when you change TRACK.points.
+// They're placed automatically, so they follow the track when you change its points.
 // Drive into them and you bounce back.
 export const TIRES = {
   runoff: 40, // grass between the edge of the track and the middle of the tires, in world units

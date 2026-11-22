@@ -4,8 +4,9 @@
 // In the scene, a spot (x, y) on the floor is (x, 0, y), and height above the floor is the y axis.
 import { type Camera, OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
 import { carLayer } from './cars';
-import { ARENA, ARENA_MIN, CAMERA, CAMERAS, type CameraName, PIXELS_PER_UNIT, SCENE, SPLIT_SCREEN, VIEW } from './config';
+import { ARENA, ARENA_MIN, BRIDGE, CAMERA, CAMERAS, type CameraName, PIXELS_PER_UNIT, SCENE, SPLIT_SCREEN, VIEW } from './config';
 import type { Player } from './player';
+import { ceilingAt } from './track';
 
 type View = (typeof CAMERAS)[CameraName];
 type RideAlong = Extract<View, { behind: number }>;
@@ -31,14 +32,16 @@ const deep = new PerspectiveCamera();
 flat.layers.enableAll();
 deep.layers.enableAll();
 
-// A camera riding along with one car: the car, and which way the camera looks (it lags behind the
-// car's turns). The first one rides with player 1's car, the second with player 2's.
+// A camera riding along with one car: the car, which way the camera looks (it lags behind the
+// car's turns), and how high above the car it rides (lower under a bridge). The first one rides
+// with player 1's car, the second with player 2's.
 interface Rider {
   camera: PerspectiveCamera;
   car: Player | null;
   heading: number;
+  height: number;
 }
-const riders: Rider[] = [0, 1].map(() => ({ camera: new PerspectiveCamera(), car: null, heading: 0 }));
+const riders: Rider[] = [0, 1].map(() => ({ camera: new PerspectiveCamera(), car: null, heading: 0, height: 0 }));
 
 export function setCamera(next: CameraName): void {
   name = next;
@@ -89,7 +92,8 @@ export function followCars(cars: readonly Player[], dt: number): void {
 function follow(rider: Rider, car: Player, view: RideAlong, aspect: number, dt: number): void {
   // A new car (a new race, or a new view) gets the camera straight behind it; after that the
   // camera turns toward where the car's nose points, taking about `swing` seconds to catch up.
-  if (car !== rider.car || view.swing <= 0) rider.heading = car.angle;
+  const fresh = car !== rider.car;
+  if (fresh || view.swing <= 0) rider.heading = car.angle;
   else {
     const off = Math.atan2(Math.sin(car.angle - rider.heading), Math.cos(car.angle - rider.heading));
     rider.heading += off * (1 - Math.exp(-dt / view.swing));
@@ -97,6 +101,18 @@ function follow(rider: Rider, car: Player, view: RideAlong, aspect: number, dt: 
   rider.car = car;
   const dx = Math.cos(rider.heading);
   const dy = Math.sin(rider.heading);
+  // Driving on the floor toward a bridge, under it or away from it, the camera ducks, so it stays
+  // under the bridge instead of ending up inside it: BRIDGE.cameraGap below the lowest part of any
+  // bridge above the line from the camera to the spot it looks at.
+  let height = view.height;
+  if (!car.raised) {
+    for (let s = 0; s <= 8; s++) {
+      const k = -view.behind + (s / 8) * (view.behind + view.lookAhead);
+      const ceiling = ceilingAt(car.x + dx * k, car.y + dy * k);
+      if (ceiling !== null) height = Math.min(height, Math.max(1, ceiling - BRIDGE.cameraGap));
+    }
+  }
+  rider.height = fresh ? height : rider.height + (height - rider.height) * (1 - Math.exp(-dt / BRIDGE.duckTime));
   const camera = rider.camera;
   camera.fov = view.fov;
   camera.aspect = aspect;
@@ -106,9 +122,10 @@ function follow(rider: Rider, car: Player, view: RideAlong, aspect: number, dt: 
   // Sitting in the car, the camera doesn't see the car's own driver and windshield: they would block the view.
   camera.layers.enableAll();
   if (view.inside) camera.layers.disable(carLayer(car.config));
-  camera.position.set(car.x - dx * view.behind, view.height, car.y - dy * view.behind);
+  // On a ramp or a bridge, the camera rises with the car.
+  camera.position.set(car.x - dx * view.behind, car.z + rider.height, car.y - dy * view.behind);
   camera.up.set(0, 1, 0);
-  camera.lookAt(car.x + dx * view.lookAhead, 0, car.y + dy * view.lookAhead);
+  camera.lookAt(car.x + dx * view.lookAhead, car.z, car.y + dy * view.lookAhead);
 }
 
 // Fit the screen to a new window size and grow or shrink the arena to fill it.

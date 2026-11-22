@@ -3,7 +3,6 @@
 import { COUNTDOWN, RACE } from './config';
 import type { Player } from './player';
 import { saveTime } from './records';
-import { lapPosition } from './track';
 
 export type Phase = 'waiting' | 'countdown' | 'racing' | 'finished';
 
@@ -107,7 +106,7 @@ const SECTORS = 4;
 // racing alone, that also checks the time against the record.
 export function countLaps(players: Player[]): void {
   for (const p of players) {
-    const now = Math.floor(lapPosition(p.x, p.y) * SECTORS);
+    const now = Math.floor(p.lapPosition() * SECTORS);
     const before = ((p.sectorsPassed % SECTORS) + SECTORS) % SECTORS;
     if (now === (before + 1) % SECTORS) p.sectorsPassed++;
     else if (now === (before + SECTORS - 1) % SECTORS) p.sectorsPassed--;

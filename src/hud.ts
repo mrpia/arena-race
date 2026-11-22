@@ -1,11 +1,11 @@
 // Everything drawn flat on top of the 3D scene: names, laps, keys, stopwatch, countdown and results.
 // It has its own see-through canvas over the scene's canvas, and works in screen pixels.
 import { screenParts } from './camera';
-import { ARENA, COLORS, type Controls, COUNTDOWN, RACE, TRACK_MAP, VIEW } from './config';
+import { ARENA, COLORS, type Controls, COUNTDOWN, RACE, TRACK_MAP, type TrackName, VIEW } from './config';
 import type { Player } from './player';
 import { countdownSign, lapsDone, raceTime, raceWinners, soloResult } from './race';
 import { bestTime } from './records';
-import { getTrack, type Track } from './track';
+import { getTrack, raisedStretches, type Track, trackShape, type TrackShape } from './track';
 
 // "KeyA" -> "A", "ArrowLeft" -> "Left"
 export function keyLabel(code: string): string {
@@ -137,9 +137,7 @@ function drawTrackMap(ctx: CanvasRenderingContext2D, players: Player[]): void {
   }
 }
 
-// The map picture: the dark box, and on it the track in world units, scaled down: a white band the
-// track's width, a gray one a little narrower on top (which leaves the edges white), and the
-// start/finish line.
+// The map picture: the dark box, and on it the track, scaled down (drawTrack).
 function paintMapPicture(track: Track, width: number, height: number, dpr: number): void {
   mapPicture.width = Math.round((width + 2 * MAP_PADDING) * dpr);
   mapPicture.height = Math.round((height + 2 * MAP_PADDING) * dpr);
@@ -149,21 +147,71 @@ function paintMapPicture(track: Track, width: number, height: number, dpr: numbe
   g.beginPath();
   g.roundRect(0, 0, width + 2 * MAP_PADDING, height + 2 * MAP_PADDING, 10);
   g.fill();
-
   const scale = width / ARENA.width; // pixels per world unit
   g.translate(MAP_PADDING, MAP_PADDING);
   g.scale(scale, scale);
-  const { middle, halfWidth } = track;
-  g.lineJoin = 'round';
+  drawTrack(g, track, scale);
+}
+
+// A small map of a track for the track row under START, on a canvas TRACK_MAP.rowWidth pixels
+// wide: the dark box with the track on it, in an arena shaped like a common window's (3:2).
+export function paintTrackPicture(picture: HTMLCanvasElement, name: TrackName): void {
+  const dpr = window.devicePixelRatio || 1;
+  const width = TRACK_MAP.rowWidth;
+  const height = Math.round((width * 2) / 3);
+  const pad = 4;
+  picture.width = Math.round(width * dpr);
+  picture.height = Math.round(height * dpr);
+  picture.style.width = `${width}px`;
+  picture.style.height = `${height}px`;
+  const g = picture.getContext('2d')!;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = TRACK_MAP.colors.background;
   g.beginPath();
-  middle.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
-  g.closePath();
-  g.strokeStyle = TRACK_MAP.colors.edge;
-  g.lineWidth = 2 * halfWidth;
-  g.stroke();
-  g.strokeStyle = TRACK_MAP.colors.track;
-  g.lineWidth = 2 * halfWidth - (2 * TRACK_MAP.edge) / scale;
-  g.stroke();
+  g.roundRect(0, 0, width, height, 6);
+  g.fill();
+  const arena = { width: 900, height: 600 };
+  const scale = (width - 2 * pad) / arena.width;
+  g.translate(pad, pad);
+  g.scale(scale, (height - 2 * pad) / arena.height);
+  drawTrack(g, trackShape(name, arena.width, arena.height), scale);
+}
+
+// The track seen from above, in world units (`scale` is the screen pixels per world unit): a white
+// band the track's width, a gray one a little narrower on top (which leaves the edges white), and the
+// start/finish line. Ramps and bridges come last, so they lie on top of the road they cross.
+function drawTrack(g: CanvasRenderingContext2D, track: TrackShape, scale: number): void {
+  const { middle, halfWidth } = track;
+  const n = middle.length;
+  const raised = raisedStretches(track);
+  // The parts on the floor run from the end of one raised stretch to the start of the next.
+  const flat = raised.map((r, i) => ({ from: r.to, to: raised[(i + 1) % raised.length].from }));
+  for (const f of flat) if (f.to <= f.from) f.to += n;
+  const stroke = (parts: { from: number; to: number }[], closed: boolean) => {
+    g.beginPath();
+    for (const part of parts) {
+      for (let k = part.from; k <= part.to; k++) {
+        const p = middle[k % n];
+        if (k === part.from) g.moveTo(p.x, p.y);
+        else g.lineTo(p.x, p.y);
+      }
+    }
+    if (closed) g.closePath();
+    g.strokeStyle = TRACK_MAP.colors.edge;
+    g.lineWidth = 2 * halfWidth;
+    g.stroke();
+    g.strokeStyle = TRACK_MAP.colors.track;
+    g.lineWidth = 2 * halfWidth - (2 * TRACK_MAP.edge) / scale;
+    g.stroke();
+  };
+  g.lineJoin = 'round';
+  g.lineCap = 'round';
+  if (raised.length === 0) stroke([{ from: 0, to: n - 1 }], true);
+  else {
+    stroke(flat, false);
+    g.lineCap = 'butt';
+    stroke(raised, false);
+  }
   // The start/finish line runs straight across the track at its first point.
   const { dx, dy } = track.directions[0];
   const start = middle[0];

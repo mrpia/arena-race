@@ -2,12 +2,13 @@
 // The track grows with the window, so a bigger window means a longer lap and a slower time.
 // That's why every window size keeps its own record, and so does every number of laps and
 // every track shape: a new track starts a new record.
-import { ARENA, RACE, TRACK } from './config';
+import { ARENA, RACE, TRACKS } from './config';
+import { currentTrack } from './track';
 
-// A short code that changes whenever the track points change.
+// A short code for the picked track, which changes whenever its points change.
 function trackCode(): string {
   let h = 0;
-  for (const ch of JSON.stringify(TRACK.points)) h = (h * 31 + ch.charCodeAt(0)) | 0;
+  for (const ch of JSON.stringify(TRACKS[currentTrack()].points)) h = (h * 31 + ch.charCodeAt(0)) | 0;
   return (h >>> 0).toString(36);
 }
 
